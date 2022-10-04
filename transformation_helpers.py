@@ -27,6 +27,7 @@ def format_df(df:pd.DataFrame) -> pd.DataFrame:
     df = add_name_column(df)
     df = add_gender_column(df)
     df = add_address_column(df)
+    df = add_date_of_birth_column(df)
     df = add_email_address_column(df)
     df = add_height_column(df)
     df = add_weight_column(df)

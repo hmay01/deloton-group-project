@@ -23,7 +23,7 @@ def connect_to_snowflake() -> snowflake.connector.cursor:
         warehouse= WAREHOUSE,
         database= DATABASE,
     )
-    return conn.cursor()
+    return conn
 
 
 def show_schemas(cs:snowflake.connector.cursor) -> list:

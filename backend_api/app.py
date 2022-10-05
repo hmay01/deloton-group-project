@@ -23,12 +23,16 @@ STAGING_SCHEMA = getenv('STAGING_SCHEMA')
 
 app = Flask(__name__)
 
-# app.config['SQLALCHEMY_DATABASE_URI'] = f"snowflake://{SNOW_USER}:{PASSWORD}@{ACCOUNT}/{DATABASE}/{SIGMA_SCHEMA}?warehouse={WAREHOUSE}"
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# CORS(app, origins=["http://127.0.0.1:8080"],  supports_credentials=True)
-# db = SQLAlchemy(app)
+app.config['SQLALCHEMY_DATABASE_URI'] = f"snowflake://{SNOW_USER}:{PASSWORD}@{ACCOUNT}/{DATABASE}/{SIGMA_SCHEMA}?warehouse={WAREHOUSE}"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+CORS(app, origins=["http://127.0.0.1:8080"],  supports_credentials=True)
+db = SQLAlchemy(app)
 
 @app.route('/', methods=['GET'])
 def index():
     return "Welcome to the Deloton Exercise Bikes API!"
 app.run()
+
+@app.route('/daily', methods=['GET'])
+def get_rides_for_current_day():
+    

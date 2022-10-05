@@ -63,7 +63,7 @@ def create_logs_table(cs: snowflake.connector.cursor):
     """)
 
 
-def append_logs_to_table(logs: list, cs):
+def append_logs_to_table(logs: list, cs:snowflake.connector.cursor):
     """ 
     Takes the logs list from the latest ride in the kafka stream and adds them to the snowflake log table
     """

@@ -57,9 +57,5 @@ def get_all_rides_for_given_user(user_id):
     #Get all rides for a rider with a specific ID
     return
 
-@app.route('/rider/<user_id>/rides', methods=['GET'])
-def get_all_rides_for_given_user(user_id):
-    #Get all rides for a rider with a specific ID
-    return
 
 

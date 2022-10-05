@@ -1,5 +1,4 @@
 from os import getenv
-import pandas as pd
 import snowflake.connector
 
 #SNOWFLAKE
@@ -11,8 +10,7 @@ DATABASE = getenv('DATABASE')
 SIGMA_SCHEMA = getenv('SIGMA_SCHEMA')
 STAGING_SCHEMA = getenv('STAGING_SCHEMA')
 
-
-def connect_to_snowflake() -> snowflake.connector.cursor:
+def connect_to_snowflake() -> snowflake.connector.connection:
     """
     Connecting to the snowflake database
     """
@@ -33,6 +31,13 @@ def show_schemas(cs:snowflake.connector.cursor) -> list:
     return cs.execute("SHOW SCHEMAS;").fetchall()
 
 
+def show_tables(cs:snowflake.connector.cursor, schema) -> list:
+    """
+    Check which tables are in the current schema the given cursor is using
+    """
+    return cs.execute(f"SHOW TABLES IN {schema}").fetchall()
+
+
 def create_staging_schema(cs:snowflake.connector.cursor):
     """ 
     Adds the staging schema to the database
@@ -47,25 +52,22 @@ def use_staging_schema(cs:snowflake.connector.cursor):
     cs.execute(f"USE SCHEMA {STAGING_SCHEMA}")
 
 
-def add_test_table(cs:snowflake.connector.cursor):
+def create_logs_table(cs: snowflake.connector.cursor):
     """ 
-    Adding test tables to schema to make sure we are using staging schema
+    Creates the snowflake logs table, which just has a single log message and id per row
     """
-    cs.execute(
-        "CREATE OR REPLACE TABLE test_table(col1 integer, col2 string)")
-    cs.execute(
-        "INSERT INTO test_table(col1, col2) VALUES(123, 'xyz'), (456, 'zyx')")
+    cs.execute(f"""
+        CREATE OR REPLACE TABLE logs(
+            "id" number AUTOINCREMENT,
+            "log" STRING)
+    """)
 
 
-def show_tables(cs:snowflake.connector.cursor, schema) -> list:
-    """
-    Check which tables are in the current schema the given cursor is using
-    """
-    return cs.execute(f"SHOW TABLES IN {schema}").fetchall()
-
-
-def fetch_test_data(cs:snowflake.connector.cursor) -> pd.DataFrame:
+def append_logs_to_table(logs: list, cs):
     """ 
-    Test that insert worked and that we can start work with pandas dataframes
+    Takes the logs list from the latest ride in the kafka stream and adds them to the snowflake log table
     """
-    return cs.execute("SELECT * FROM test_table").fetch_pandas_all()
+    '''A list of logs is INSERTED INTO the pre-existing logs table'''
+    cs.executemany("""INSERT INTO logs VALUES(default, %s)""", logs)
+    print(f'Table updated with {len(logs)} new rows.')
+

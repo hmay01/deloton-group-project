@@ -2,6 +2,7 @@ import confluent_kafka
 import uuid
 from os import getenv
 import json
+from snowflake_helpers import append_logs_to_table
 
 KAFKA_TOPIC_NAME = getenv('KAFKA_TOPIC')
 KAFKA_SERVER = getenv('KAFKA_SERVER')
@@ -33,25 +34,38 @@ def connect_to_kafka_consumer() -> confluent_kafka.Consumer:
     return c
 
 
-def stream_kafka_topic(c:confluent_kafka.Consumer, topic: str, number_of_logs: int) -> list:
+def stream_kafka_topic(c:confluent_kafka.Consumer, topic: str, snowflake_cursor) -> list:
     """
-    Streams a predefined number of logs using the provided kafka consumer and topic
-    Returns a list of the logs
+    Constantly streams logs using the provided kafka consumer and topic
+    Appends each log to the ride_logs list
+    When a ride comes to an end (signalled by "beginning of main" log), adds the logs for that ride to the snowflake log table
+    When a new ride begins, it appends the new logs to the newly cleared logs list
+
+    Process is repeated
     """
     c.subscribe([topic])
-    data = []
+    ride_logs = []
     try:
-        while len(data) <= number_of_logs:
+        while True:
             log = c.poll(1.0)
             if log == None:
                 pass
             else: 
-                key = log.key().decode('utf-8')
                 value = json.loads(log.value().decode('utf-8'))
-                topic = log.topic()
-                data.append(value['log'])
-        return data
+                value_log = value['log']
+                if 'beginning of main' in value_log:
+                    print('Ride ended. Appending logs to the following table: logs.')
+                    append_logs_to_table(ride_logs, snowflake_cursor)
+                    ride_logs.clear()
+                elif 'new ride' in value_log:
+                    print('New Ride. Collecting logs.')
+                    ride_logs.append(value_log)
+                else:
+                    ride_logs.append(value_log)
     except KeyboardInterrupt:
         pass
     finally:
         c.close()
+
+
+

@@ -25,6 +25,7 @@ app.run()
 
 @app.route('/daily', methods=['GET'])
 def get_daily_rides():
+    #Get all of the rides in the current day
     daily_rides_df = cs.execute("SELECT * FROM DF_TEST_TABLE").fetch_pandas_all()
     daily_rides_json_string = daily_rides_df.to_json(orient="index")
     daily_rides_dict = json.loads(daily_rides_json_string)

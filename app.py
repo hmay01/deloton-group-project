@@ -24,19 +24,13 @@ def index():
 app.run()
 
 @app.route('/daily', methods=['GET'])
-def get_daily_rides():
-    #Get all of the rides in the current day
-    daily_rides_df = cs.execute("SELECT * FROM DF_TEST_TABLE").fetch_pandas_all()
-    daily_rides_json_string = daily_rides_df.to_json(orient="index")
-    daily_rides_dict = json.loads(daily_rides_json_string)
-    daily_rides_json = json.dumps(daily_rides_dict, indent=4) 
-    return   daily_rides_json
-
-@app.route('/daily/search', methods=['GET'])
 def get_rides():
     search_word = request.args.get('date')
-    #Get all rides for a specific date
-    return search_word
+    if search_word == None:
+        return get_daily_rides()
+    else:
+        #Get all rides for a specific date
+        return search_word
 
 @app.route('/ride/<id>', methods=['GET','DELETE'])
 def ride_id(id):
@@ -58,4 +52,10 @@ def get_all_rides_for_given_user(user_id):
     return
 
 
-
+def get_daily_rides():
+    #Get all of the rides in the current day
+    daily_rides_df = cs.execute("SELECT * FROM DF_TEST_TABLE").fetch_pandas_all()
+    daily_rides_json_string = daily_rides_df.to_json(orient="index")
+    daily_rides_dict = json.loads(daily_rides_json_string)
+    daily_rides_json = json.dumps(daily_rides_dict, indent=4) 
+    return   daily_rides_json

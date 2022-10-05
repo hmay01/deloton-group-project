@@ -2,12 +2,6 @@ import json
 import pandas as pd
 import re
 
-def init_df(data:list) -> pd.DataFrame:
-    """ 
-    Makes the initial df which has a row for each log
-    """
-    return pd.DataFrame(columns=['log'], data=data)
-
 def format_df(df:pd.DataFrame) -> pd.DataFrame:
     """ 
     Adds all the necessary columns to the df

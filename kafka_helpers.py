@@ -2,7 +2,7 @@ import confluent_kafka
 import uuid
 from os import getenv
 import json
-from snowflake_helpers import append_logs_to_table
+from snowflake_helpers import append_logs_to_table, is_initial_lost_ride
 
 KAFKA_TOPIC_NAME = getenv('KAFKA_TOPIC')
 KAFKA_SERVER = getenv('KAFKA_SERVER')
@@ -47,19 +47,25 @@ def stream_kafka_topic(c:confluent_kafka.Consumer, topic: str, snowflake_cursor)
         - When a new ride begins, it appends the new logs to the newly cleared logs list
 
     Process is repeated
-    
+
     """
     c.subscribe([topic])
+    print(f'Kafka consumer subscribed to topic: {topic}. Logs will be cached from beginning of next ride.')
+
     ride_logs = []
+    ride_id = 0
+    counter = 0
     try:
-        while True:
+        while counter <= 5:
             log = c.poll(1.0)
             if log == None:
                 pass
             else: 
                 value = json.loads(log.value().decode('utf-8'))
                 value_log = value['log']
-
+                ride_logs.append(value_log)
+                counter += 1
+        append_logs_to_table(ride_logs, ride_id, snowflake_cursor)
                 # SAVE ROOM FOR HEART RATE ANALYSIS
                     #heart_rate = 
                     #age = 
@@ -74,15 +80,33 @@ def stream_kafka_topic(c:confluent_kafka.Consumer, topic: str, snowflake_cursor)
                     #current_time = 
 
                 # FILLING UP RIDE LOGS AND LOADING INTO STAGING SCHEMA
-                if 'beginning of main' in value_log:
-                    print('Ride ended. Appending logs to the following table: logs.')
-                    append_logs_to_table(ride_logs, snowflake_cursor)
-                    ride_logs.clear()
-                elif 'new ride' in value_log:
-                    print('New Ride. Collecting logs.')
-                    ride_logs.append(value_log)
-                else:
-                    ride_logs.append(value_log)
+
+                # lost ride logs
+             
+                # new ride log
+                # if 'new ride' in value_log:
+                #     ride_id += 1
+                #     print(f'New ride with id: {ride_id}. Collecting logs...')
+                #     ride_logs.append(value_log)
+                    
+                # end of ride log
+                # elif 'beginning of main' in value_log:
+                #     if is_initial_lost_ride(ride_id):
+                #         pass
+                #     else:
+                #         print('Ride successfully ended. Appending logs to the logs table.')
+                #         append_logs_to_table(ride_logs, ride_id, snowflake_cursor)
+                #         ride_logs.clear()
+
+                # #mid ride logs
+                # else:
+                #     if is_initial_lost_ride(ride_id):
+                #         pass
+                #     else:
+                #         ride_logs.append(value_log)
+
+                  
+
     except KeyboardInterrupt:
         pass
     finally:

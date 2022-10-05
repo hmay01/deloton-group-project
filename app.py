@@ -2,14 +2,14 @@
 # %pip install Flask-Cors
 # %pip install pyarrow
 
-from datetime import datetime
-# from os import getenv
-from snowflake_helpers import *
 import json
+from datetime import datetime
 
+import snowflake.connector
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
-import snowflake.connector
+
+from snowflake_helpers import *
 
 conn = connect_to_snowflake()
 cs = conn.cursor()

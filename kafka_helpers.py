@@ -15,7 +15,7 @@ def connect_to_kafka_consumer() -> confluent_kafka.Consumer:
 
     c = confluent_kafka.Consumer({
         'bootstrap.servers': KAFKA_SERVER,
-        'group.id': f'deloton-group-three' +str(uuid.uuid1()),
+        'group.id': f'deloton-group-yusra-stories' +str(uuid.uuid1()),
         'security.protocol': 'SASL_SSL',
         'sasl.mechanisms': 'PLAIN',
         'sasl.username': KAFKA_USERNAME,
@@ -23,7 +23,7 @@ def connect_to_kafka_consumer() -> confluent_kafka.Consumer:
         'session.timeout.ms': 6000,
         'heartbeat.interval.ms': 1000,
         'fetch.wait.max.ms': 6000,
-        'auto.offset.reset': 'earliest',
+        'auto.offset.reset': 'latest',
         'enable.auto.commit': 'false',
         'max.poll.interval.ms': '86400000',
         'topic.metadata.refresh.interval.ms': "-1",
@@ -44,7 +44,7 @@ def stream_kafka_topic(c:confluent_kafka.Consumer, topic: str, number_of_logs: i
         while len(data) <= number_of_logs:
             log = c.poll(1.0)
             if log == None:
-                data.append('No message available')
+                pass
             else: 
                 key = log.key().decode('utf-8')
                 value = json.loads(log.value().decode('utf-8'))

@@ -37,11 +37,17 @@ def connect_to_kafka_consumer() -> confluent_kafka.Consumer:
 def stream_kafka_topic(c:confluent_kafka.Consumer, topic: str, snowflake_cursor) -> list:
     """
     Constantly streams logs using the provided kafka consumer and topic
-    Appends each log to the ride_logs list
-    When a ride comes to an end (signalled by "beginning of main" log), adds the logs for that ride to the snowflake log table
-    When a new ride begins, it appends the new logs to the newly cleared logs list
+
+    1. Directly queries logs for heart rate alerts
+
+    2. Directly queries logs for live section of dashboard
+
+    3. Appends each log to the ride_logs list
+        - When a ride comes to an end (signalled by "beginning of main" log), adds the logs for that ride to the snowflake log table
+        - When a new ride begins, it appends the new logs to the newly cleared logs list
 
     Process is repeated
+    
     """
     c.subscribe([topic])
     ride_logs = []
@@ -53,6 +59,21 @@ def stream_kafka_topic(c:confluent_kafka.Consumer, topic: str, snowflake_cursor)
             else: 
                 value = json.loads(log.value().decode('utf-8'))
                 value_log = value['log']
+
+                # SAVE ROOM FOR HEART RATE ANALYSIS
+                    #heart_rate = 
+                    #age = 
+
+
+                # SAVE ROOM FOR CURRENT RIDE DASH CONNECTION
+                    #user = 
+                    #gender = 
+                    #age = 
+                    #current_duration = 
+                    #latest_heart_rate = 
+                    #current_time = 
+
+                # FILLING UP RIDE LOGS AND LOADING INTO STAGING SCHEMA
                 if 'beginning of main' in value_log:
                     print('Ride ended. Appending logs to the following table: logs.')
                     append_logs_to_table(ride_logs, snowflake_cursor)

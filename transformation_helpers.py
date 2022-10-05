@@ -12,6 +12,7 @@ def format_df(df:pd.DataFrame) -> pd.DataFrame:
     df = add_is_system_column(df)
     df = add_date_column(df)
     # ride columns (INFO LOGS)
+    df = add_ride_duration_column(df)
     df = add_heart_rate_column(df)
     df = add_resistance_column(df)
     df = add_rpm_column(df)

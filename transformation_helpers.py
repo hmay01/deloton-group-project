@@ -177,7 +177,7 @@ def add_ride_duration_column(df:pd.DataFrame) -> pd.DataFrame:
     """ 
     Shows ride duration stat for the relevant INFO logs
     """
-    df['ride_duration_secs'] = df['log'].apply(reg_extract_ride_duration)
+    df['duration_secs'] = df['log'].apply(reg_extract_ride_duration)
     return df
 
 def add_resistance_column(df:pd.DataFrame) -> pd.DataFrame:

@@ -42,20 +42,31 @@ def ride_id(id):
         return
 
 @app.route('/rider/<user_id>', methods=['GET'])
-def get_rider_info(user_id):
+def get_rider_info(user_id: str) -> json:
     #Get rider information (e.g. name, gender, age, avg. heart rate, number of rides)
     return
 
 @app.route('/rider/<user_id>/rides', methods=['GET'])
-def get_all_rides_for_given_user(user_id):
-    #Get all rides for a rider with a specific ID
+def get_all_rides_for_given_user(user_id: str) -> json:
+    """
+    Returns a JSON object containing all rides for a rider with a specific ID
+    """
     return
 
 
-def get_daily_rides():
-    #Get all of the rides in the current day
+def get_daily_rides() -> json:
+    """
+    Returns a json object of all the rides in the current day
+    """
     daily_rides_df = cs.execute("SELECT * FROM DF_TEST_TABLE").fetch_pandas_all()
-    daily_rides_json_string = daily_rides_df.to_json(orient="index")
-    daily_rides_dict = json.loads(daily_rides_json_string)
-    daily_rides_json = json.dumps(daily_rides_dict, indent=4) 
+    daily_rides_json = convert_to_json(daily_rides_df)
     return   daily_rides_json
+
+def convert_to_json(result_set_df: pd.DataFrame) -> json:
+    """
+    Converts a pandas dataframe to a JSON object formatted {index: {column : value}}
+    """
+    result_set_json_string = result_set_df.to_json(orient="index")
+    result_set_dict = json.loads(result_set_json_string)
+    result_set_json = json.dumps(result_set_dict, indent=4) 
+    return result_set_json

@@ -234,6 +234,7 @@ def add_user_id_column(df:pd.DataFrame) -> pd.DataFrame:
     Shows user id for the relevant SYSTEM logs
     """
     df['user_id'] = df['log'].apply(get_value_from_user_dict, args=['user_id'])
+    df['user_id'] = df['user_id'].astype('Int64')
     return df
 
 

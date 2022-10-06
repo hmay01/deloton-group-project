@@ -1,6 +1,7 @@
 import json
 import pandas as pd
 import re
+from datetime import date
 
 def format_df(df:pd.DataFrame) -> pd.DataFrame:
     """ 
@@ -248,3 +249,14 @@ def add_original_source_column(df:pd.DataFrame) -> pd.DataFrame:
     df['original_source'] = df['log'].apply(get_value_from_user_dict, args=['original_source'])
     return df
 
+def get_age(dob:date) -> int:
+    """Calculates a users age based on their date of birth"""
+    today = date.today()
+    try: 
+        birthday = dob.replace(year=today.year)
+    except ValueError: # raised when birth date is February 29 and the current year is not a leap year
+        birthday = dob.replace(year=today.year, month=dob.month+1, day=1)
+    if birthday > today:
+        return today.year - dob.year - 1
+    else:
+        return today.year - dob.year

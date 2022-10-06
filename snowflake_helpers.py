@@ -9,6 +9,7 @@ WAREHOUSE = getenv('WAREHOUSE')
 DATABASE = getenv('DATABASE')
 SIGMA_SCHEMA = getenv('SIGMA_SCHEMA')
 STAGING_SCHEMA = getenv('STAGING_SCHEMA')
+PRODUCTION_SCHEMA = getenv('PRODUCTION_SCHEMA')
 
 def connect_to_snowflake() -> snowflake.connector.connection:
     """
@@ -44,12 +45,23 @@ def create_staging_schema(cs:snowflake.connector.cursor):
     """
     cs.execute(f"CREATE SCHEMA IF NOT EXISTS {STAGING_SCHEMA}")
 
+def create_production_schema(cs:snowflake.connector.cursor):
+    """ 
+    Adds the production schema to the database
+    """
+    cs.execute(f"CREATE SCHEMA IF NOT EXISTS {PRODUCTION_SCHEMA}")
 
 def use_staging_schema(cs:snowflake.connector.cursor):
     """ 
     Ensure that cursor is using the staging schema
     """
     cs.execute(f"USE SCHEMA {STAGING_SCHEMA}")
+
+def use_production_schema(cs:snowflake.connector.cursor):
+    """ 
+    Ensure that cursor is using the production schema
+    """
+    cs.execute(f"USE SCHEMA {PRODUCTION_SCHEMA}")
 
 
 def create_logs_table(cs: snowflake.connector.cursor):

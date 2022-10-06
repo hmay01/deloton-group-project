@@ -3,7 +3,6 @@ from kafka_helpers import (KAFKA_TOPIC_NAME, connect_to_kafka_consumer,
 from snowflake_helpers import (connect_to_snowflake, create_logs_table,
                                create_staging_schema, use_staging_schema)
 
-
 if __name__ == "__main__":
     conn = connect_to_snowflake()
     cs = conn.cursor()

@@ -1,43 +1,85 @@
 import json
-import pandas as pd
 import re
+from datetime import date
 
-def format_df(df:pd.DataFrame) -> pd.DataFrame:
+import pandas as pd
+
+
+def get_joined_formatted_df(df:pd.DataFrame) -> pd.DataFrame:
     """ 
     Adds all the necessary columns to the df
     """
+    print(f'at the start df is {type(df)}')
     # general columns
+    df = add_ride_id_column(df)
     df = add_is_new_ride_column(df)
     df = add_is_info_column(df)
     df = add_is_system_column(df)
-    df = add_date_column(df)
+    df = add_datetime_column(df)
+    # user columns (SYSTEM LOGS)
+    df = add_user_id_column(df)
+    df = add_name_column(df)
+    df = add_gender_column(df)
+    df = add_date_of_birth_column(df)
+    df['date_of_birth'] = df['date_of_birth'].apply(lambda x: pd.Timestamp(x, unit='ms'))
+    df = add_age_column(df)
+    df = add_height_column(df)
+    df = add_weight_column(df)
+    df = add_address_column(df) 
+    df = add_email_address_column(df)
+    df = add_account_create_date_column(df)
+    df['account_created'] = df['account_created'].apply(lambda x: pd.Timestamp(x, unit='ms'))
+    df = add_bike_serial_column(df)
+    df = add_original_source_column(df)
     # ride columns (INFO LOGS)
     df = add_ride_duration_column(df)
     df = add_heart_rate_column(df)
     df = add_resistance_column(df)
     df = add_rpm_column(df)
     df = add_power_column(df)
-    # user columns (SYSTEM LOGS)
-    df = add_user_id_column(df)
-    df = add_name_column(df)
-    df = add_gender_column(df)
-    df = add_address_column(df)
-    df = add_date_of_birth_column(df)
-    df = add_email_address_column(df)
-    df = add_height_column(df)
-    df = add_weight_column(df)
-    df = add_account_create_date_column(df)
-    df = add_bike_serial_column(df)
-    df = add_original_source_column(df)
-
     return df
 
-def reg_extract_date(log: str):
-    '''Parse date from given log text'''
+def get_users_df(formatted_df:pd.DataFrame) -> pd.DataFrame:
+    """ 
+    Takes in the joined df for all logs "formatted_df" and returns only those columns relevant for user table
+    """
+    system_logs = formatted_df[(formatted_df['is_system']) == True]
+    unique_user_system_logs = system_logs.drop_duplicates('user_id')
+    user_columns = ['user_id', 'name', 'gender', 'date_of_birth', 'age', 'height_cm', 'weight_kg', 'address', 'email_address', 'account_created', 'bike_serial', 'original_source']
+    user_df = unique_user_system_logs[user_columns]
+    user_df = user_df.set_index('user_id')
+    return user_df
+
+def get_age(dob:date) -> int:
+    """
+    Calculates a person's age based on their date of birth
+    """
+    today = date.today()
+    try: 
+        birthday = dob.replace(year=today.year)
+    except ValueError: # raised when birth date is February 29 and the current year is not a leap year
+        birthday = dob.replace(year=today.year, month=dob.month+1, day=1)
+    if birthday > today:
+        return today.year - dob.year - 1
+    else:
+        return today.year - dob.year
+
+
+def reg_extract_ride_id(log: str):
+    '''Parse ride_id from given log text'''
+    search = re.search('^(ride )([0-9]*)', log)
+    if search is not None: 
+        ride_id = search.group(2)
+        return ride_id
+    else:
+        return None
+
+def reg_extract_log_datetime(log: str):
+    '''Parse log datetime from given log text'''
     search = re.search('[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{6}', log)
     if search is not None: 
-        date = search.group(0)
-        return date
+        datetime = search.group(0)
+        return datetime
     else:
         return None
 
@@ -90,8 +132,10 @@ def add_is_new_ride_column(df:pd.DataFrame) -> pd.DataFrame:
     """ 
     To indicate if a log marks the beginning of a new ride
     """
-    df['is_new_ride'] = df.log.str.contains('new ride')
+    df['is_new_ride'] = df['log'].str.contains('new ride')
     return df
+
+
 
 def add_is_info_column(df:pd.DataFrame) -> pd.DataFrame:
     """ 
@@ -107,13 +151,20 @@ def add_is_system_column(df:pd.DataFrame) -> pd.DataFrame:
     df['is_system'] = df.log.str.contains('SYSTEM')
     return df
 
-def add_date_column(df:pd.DataFrame) -> pd.DataFrame:
+def add_datetime_column(df:pd.DataFrame) -> pd.DataFrame:
     """ 
     Holds the datetime of when the log was published
     """
-    df['date'] = df.log.apply(reg_extract_date)
-    df['date'] = pd.to_datetime(df.date)
+    df['time'] = df['log'].apply(reg_extract_log_datetime)
+    df['time'] = pd.to_datetime(df['time'])
     return df
+
+def add_age_column(user_df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the age of each user
+    """
+    user_df['age'] = user_df['date_of_birth'].apply(get_age)
+    return user_df
 
 def add_heart_rate_column(df:pd.DataFrame) -> pd.DataFrame:
     """ 
@@ -171,12 +222,20 @@ def get_value_from_user_dict(log:str, value:str) -> pd.Series:
     else:
         return None
 
+def add_ride_id_column(df:pd.DataFrame) -> pd.DataFrame:
+    """ 
+    Applies the ride_id regex to each log and adds the result into a new column
+    """
+    df['ride_id'] = df['log'].apply(reg_extract_ride_id)
+    return df
+
 def add_user_id_column(df:pd.DataFrame) -> pd.DataFrame:
     """ 
     Shows user id for the relevant SYSTEM logs
     """
     df['user_id'] = df['log'].apply(get_value_from_user_dict, args=['user_id'])
     return df
+
 
 def add_name_column(df:pd.DataFrame) -> pd.DataFrame:
     """ 
@@ -231,7 +290,7 @@ def add_account_create_date_column(df:pd.DataFrame) -> pd.DataFrame:
     """ 
     Shows account create date for the relevant SYSTEM logs
     """
-    df['account_create_date'] = df['log'].apply(get_value_from_user_dict, args=['account_create_date'])
+    df['account_created'] = df['log'].apply(get_value_from_user_dict, args=['account_create_date'])
     return df
 
 def add_bike_serial_column(df:pd.DataFrame) -> pd.DataFrame:

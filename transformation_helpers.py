@@ -5,9 +5,9 @@ from datetime import timedelta
 import pandas as pd
 
 
-def get_joined_formatted_df(df:pd.DataFrame) -> pd.DataFrame:
+def get_joined_formatted_df(logs_df:pd.DataFrame) -> pd.DataFrame:
     """ 
-    Adds all the necessary columns to the df
+    Adds all the necessary columns to the logs_df
     """
 
     # general columns

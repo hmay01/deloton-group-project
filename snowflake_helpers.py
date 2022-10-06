@@ -1,4 +1,5 @@
 from os import getenv
+
 import snowflake.connector
 
 #SNOWFLAKE
@@ -15,12 +16,13 @@ def connect_to_snowflake() -> snowflake.connector.connection:
     """
     Connecting to the snowflake database
     """
+    print(f'user is {SNOW_USER}')
     conn = snowflake.connector.connect(
-        user= SNOW_USER,
-        account= ACCOUNT,
-        password= PASSWORD,
-        warehouse= WAREHOUSE,
-        database= DATABASE,
+        user=SNOW_USER,
+        account=ACCOUNT,
+        password=PASSWORD,
+        warehouse=WAREHOUSE,
+        database=DATABASE,
     )
     return conn
 

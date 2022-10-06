@@ -9,7 +9,7 @@ def get_joined_formatted_df(df:pd.DataFrame) -> pd.DataFrame:
     """ 
     Adds all the necessary columns to the df
     """
-    print(f'at the start df is {type(df)}')
+
     # general columns
     df = add_ride_id_column(df)
     df = add_is_new_ride_column(df)
@@ -48,6 +48,7 @@ def get_users_df(formatted_df:pd.DataFrame) -> pd.DataFrame:
     user_columns = ['user_id', 'name', 'gender', 'date_of_birth', 'age', 'height_cm', 'weight_kg', 'address', 'email_address', 'account_created', 'bike_serial', 'original_source']
     user_df = unique_user_system_logs[user_columns]
     user_df = user_df.set_index('user_id')
+    print('Users dataframe ready to be added to snowflake production schema.')
     return user_df
 
 
@@ -74,6 +75,7 @@ def get_final_rides_df(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
     rides_df = rides_df.drop_duplicates()
     rides_df = rides_df.dropna()
     rides_df = rides_df.set_index('ride_id')
+    print('Rides dataframe ready to be added to snowflake production schema.')
     return rides_df
 
 

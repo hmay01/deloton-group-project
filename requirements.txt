@@ -1,4 +1,5 @@
 snowflake-connector-python
-pyarrow
+pyarrow==8.0.0
 pandas
 confluent-kafka
+python-dotenv

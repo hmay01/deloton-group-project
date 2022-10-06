@@ -134,7 +134,7 @@ def write_pandas_to_users_table(conn:snowflake.connector.connection, user_df:pd.
     Writes the latest version of the users dataframe to the USERS table.
     """
     write_pandas(conn, user_df, 'USERS')
-    print(f'Dataframe written to production schema table: USERS')
+    print(f'WRITTEN TO THE PRODUCTION SCHEMA table: USERS')
 
 
 
@@ -164,4 +164,4 @@ def write_pandas_to_rides_table(conn:snowflake.connector.connection, rides_df:pd
     Writes the latest version of the rides dataframe to the RIDES table.
     """
     write_pandas(conn, rides_df, 'RIDES')
-    print(f'Dataframe written to production schema table: RIDES')
+    print(f'WRITTEN TO THE PRODUCTION SCHEMA table: RIDES')

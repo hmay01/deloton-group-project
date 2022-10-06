@@ -166,12 +166,23 @@ def add_age_column(user_df:pd.DataFrame) -> pd.DataFrame:
     user_df['age'] = user_df['date_of_birth'].apply(get_age)
     return user_df
 
+
+def heart_rate_zeros_to_nans(hr):
+    if hr is 0:
+        return pd.NA
+    else:
+        return hr
+
+
 def add_heart_rate_column(df:pd.DataFrame) -> pd.DataFrame:
     """ 
     Shows heart rate stat for the relevant INFO logs
     """
     df['heart_rate'] = df.log.apply(reg_extract_heart_rate)
+    df['heart_rate'] = df['heart_rate'].astype('Int64')
+    df['heart_rate'] = df['heart_rate'].apply(heart_rate_zeros_to_nans)
     return df
+
 
 def add_ride_duration_column(df:pd.DataFrame) -> pd.DataFrame:
     """ 

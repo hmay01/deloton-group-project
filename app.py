@@ -3,7 +3,7 @@
 # %pip install pyarrow
 
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from flask import Flask, request
 
@@ -76,3 +76,11 @@ def convert_to_json(result_set_df:pd.DataFrame) -> json:
     result_set_dict = json.loads(result_set_json_string)
     result_set_json = json.dumps(result_set_dict, indent=4) 
     return result_set_json
+
+def get_variable_date(num_days: int) -> str:
+    """
+    Returns the date going forward a specified number of days 
+    from the current date
+    """
+    date = str(datetime.now().date() + timedelta(days = num_days))
+    return date

@@ -54,18 +54,15 @@ def stream_kafka_topic(c:confluent_kafka.Consumer, topic: str, snowflake_cursor)
 
     ride_logs = []
     ride_id = 0
-    counter = 0
     try:
-        while counter <= 5:
+        while True:
             log = c.poll(1.0)
             if log == None:
                 pass
             else: 
                 value = json.loads(log.value().decode('utf-8'))
                 value_log = value['log']
-                ride_logs.append(value_log)
-                counter += 1
-        append_logs_to_table(ride_logs, ride_id, snowflake_cursor)
+                # ride_logs.append(f'ride id = {ride_id} {value_log}')
                 # SAVE ROOM FOR HEART RATE ANALYSIS
                     #heart_rate = 
                     #age = 
@@ -80,30 +77,28 @@ def stream_kafka_topic(c:confluent_kafka.Consumer, topic: str, snowflake_cursor)
                     #current_time = 
 
                 # FILLING UP RIDE LOGS AND LOADING INTO STAGING SCHEMA
-
-                # lost ride logs
              
                 # new ride log
-                # if 'new ride' in value_log:
-                #     ride_id += 1
-                #     print(f'New ride with id: {ride_id}. Collecting logs...')
-                #     ride_logs.append(value_log)
+                if 'new ride' in value_log:
+                    ride_id += 1
+                    print(f'New ride with id: {ride_id}. Collecting logs...')
+                    ride_logs.append(f'ride {ride_id} {value_log}')
                     
                 # end of ride log
-                # elif 'beginning of main' in value_log:
-                #     if is_initial_lost_ride(ride_id):
-                #         pass
-                #     else:
-                #         print('Ride successfully ended. Appending logs to the logs table.')
-                #         append_logs_to_table(ride_logs, ride_id, snowflake_cursor)
-                #         ride_logs.clear()
+                elif 'beginning of main' in value_log:
+                    if is_initial_lost_ride(ride_id):
+                        pass
+                    else:
+                        print('Ride successfully ended. Appending logs to the logs table.')
+                        append_logs_to_table(ride_logs, snowflake_cursor)
+                        ride_logs.clear()
 
                 # #mid ride logs
-                # else:
-                #     if is_initial_lost_ride(ride_id):
-                #         pass
-                #     else:
-                #         ride_logs.append(value_log)
+                else:
+                    if is_initial_lost_ride(ride_id):
+                        pass
+                    else:
+                        ride_logs.append(f'ride {ride_id} {value_log}')
 
                   
 

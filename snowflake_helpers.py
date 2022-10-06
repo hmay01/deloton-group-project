@@ -59,18 +59,16 @@ def create_logs_table(cs: snowflake.connector.cursor):
     cs.execute(f"""
         CREATE OR REPLACE TABLE logs(
             "log_id" number AUTOINCREMENT,
-            "ride_id" number,
             "log" STRING)
     """)
 
 
-def append_logs_to_table(logs: list, ride_id, cs:snowflake.connector.cursor):
+def append_logs_to_table(logs: list, cs:snowflake.connector.cursor):
     """ 
     Takes the logs list from the latest ride in the kafka stream and adds them to the snowflake log table
     """
     '''A list of logs is INSERTED INTO the pre-existing logs table'''
-    sequence_of_ride_ids = [ride_id] * len(logs)
-    cs.executemany("INSERT INTO logs VALUES(default, %s, %s)", (logs, sequence_of_ride_ids))
+    cs.executemany("INSERT INTO logs VALUES(default, %s)", logs)
     print(f'Table updated with {len(logs)} new rows.')
 
 def is_initial_lost_ride(ride_id: int) -> bool:

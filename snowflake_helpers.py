@@ -18,7 +18,7 @@ def connect_to_snowflake() -> snowflake.connector.connection:
     """
     Connecting to the snowflake database
     """
-    print(f'user is {SNOW_USER}')
+    
     conn = snowflake.connector.connect(
         user=SNOW_USER,
         account=ACCOUNT,
@@ -26,6 +26,7 @@ def connect_to_snowflake() -> snowflake.connector.connection:
         warehouse=WAREHOUSE,
         database=DATABASE,
     )
+    print(f'Connected to Snowflake with user: {SNOW_USER}')
     return conn
 
 
@@ -48,18 +49,21 @@ def create_staging_schema(cs:snowflake.connector.cursor):
     Adds the staging schema to the database
     """
     cs.execute(f"CREATE SCHEMA IF NOT EXISTS {STAGING_SCHEMA}")
+    print(f'Schema: {STAGING_SCHEMA} created.')
 
 def create_production_schema(cs:snowflake.connector.cursor):
     """ 
     Adds the production schema to the database
     """
     cs.execute(f"CREATE SCHEMA IF NOT EXISTS {PRODUCTION_SCHEMA}")
+    print(f'Schema: {PRODUCTION_SCHEMA} created.')
 
 def use_staging_schema(cs:snowflake.connector.cursor):
     """ 
     Ensure that cursor is using the staging schema
     """
     cs.execute(f"USE SCHEMA {STAGING_SCHEMA}")
+    print(f'Cursor now using schema: {STAGING_SCHEMA}')
 
 def use_production_schema(cs:snowflake.connector.cursor):
     """ 
@@ -77,6 +81,7 @@ def create_logs_table(cs: snowflake.connector.cursor):
             "log_id" number AUTOINCREMENT,
             "log" STRING)
     """)
+    print('Empty logs table created.')
 
 
 def append_logs_to_table(logs: list, cs:snowflake.connector.cursor):

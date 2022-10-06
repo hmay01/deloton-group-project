@@ -5,9 +5,7 @@
 import json
 from datetime import datetime
 
-import snowflake.connector
-from dotenv import load_dotenv
-from flask import Flask, jsonify, request
+from flask import Flask, request
 
 from snowflake_helpers import *
 
@@ -19,12 +17,12 @@ app = Flask(__name__)
 
 
 @app.route('/', methods=['GET'])
-def index():
+def index() -> str:
     return "Welcome to the Deloton Exercise Bikes API!"
-app.run()
+
 
 @app.route('/daily', methods=['GET'])
-def get_rides():
+def get_rides() -> json:
     search_word = request.args.get('date')
     if search_word == None:
         return get_daily_rides()
@@ -33,7 +31,11 @@ def get_rides():
         return search_word
 
 @app.route('/ride/<id>', methods=['GET','DELETE'])
-def ride_id(id):
+def ride_id(id:str) -> json:
+    """
+    For a given ID string input, returns a different JSON object
+    based on the chosen request method
+    """
     if (request.method == 'GET'):
         #Get a ride with a specific ID
         return
@@ -42,14 +44,18 @@ def ride_id(id):
         return
 
 @app.route('/rider/<user_id>', methods=['GET'])
-def get_rider_info(user_id: str) -> json:
-    #Get rider information (e.g. name, gender, age, avg. heart rate, number of rides)
+def get_rider_info(user_id:str) -> json:
+    """
+    Returns a JSON object containing rider information (e.g. name, gender, age, 
+    avg. heart rate, number of rides) for a rider with a specific ID string input
+    """
     return
 
 @app.route('/rider/<user_id>/rides', methods=['GET'])
-def get_all_rides_for_given_user(user_id: str) -> json:
+def get_all_rides_for_given_user(user_id:str) -> json:
     """
-    Returns a JSON object containing all rides for a rider with a specific ID
+    Returns a JSON object containing all rides for a rider with 
+    a specific ID string input
     """
     return
 
@@ -62,9 +68,9 @@ def get_daily_rides() -> json:
     daily_rides_json = convert_to_json(daily_rides_df)
     return   daily_rides_json
 
-def convert_to_json(result_set_df: pd.DataFrame) -> json:
+def convert_to_json(result_set_df:pd.DataFrame) -> json:
     """
-    Converts a pandas dataframe to a JSON object formatted {index: {column : value}}
+    Converts a pandas DataFrame to a JSON object formatted {index: {column : value}}
     """
     result_set_json_string = result_set_df.to_json(orient="index")
     result_set_dict = json.loads(result_set_json_string)

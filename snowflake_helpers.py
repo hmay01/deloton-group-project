@@ -1,7 +1,9 @@
 from os import getenv
 import pandas as pd
 import snowflake.connector
+from dotenv import load_dotenv
 
+load_dotenv()
 #SNOWFLAKE
 SNOW_USER = getenv('SNOW_USER')
 ACCOUNT = getenv('ACCOUNT')

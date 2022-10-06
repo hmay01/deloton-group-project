@@ -2,6 +2,7 @@ import confluent_kafka
 import uuid
 from os import getenv
 import json
+from snowflake_helpers import append_logs_to_table, is_initial_lost_ride
 
 KAFKA_TOPIC_NAME = getenv('KAFKA_TOPIC')
 KAFKA_SERVER = getenv('KAFKA_SERVER')
@@ -15,7 +16,7 @@ def connect_to_kafka_consumer() -> confluent_kafka.Consumer:
 
     c = confluent_kafka.Consumer({
         'bootstrap.servers': KAFKA_SERVER,
-        'group.id': f'deloton-group-three' +str(uuid.uuid1()),
+        'group.id': f'deloton-group-yusra-stories' +str(uuid.uuid1()),
         'security.protocol': 'SASL_SSL',
         'sasl.mechanisms': 'PLAIN',
         'sasl.username': KAFKA_USERNAME,
@@ -23,7 +24,7 @@ def connect_to_kafka_consumer() -> confluent_kafka.Consumer:
         'session.timeout.ms': 6000,
         'heartbeat.interval.ms': 1000,
         'fetch.wait.max.ms': 6000,
-        'auto.offset.reset': 'earliest',
+        'auto.offset.reset': 'latest',
         'enable.auto.commit': 'false',
         'max.poll.interval.ms': '86400000',
         'topic.metadata.refresh.interval.ms': "-1",
@@ -33,25 +34,78 @@ def connect_to_kafka_consumer() -> confluent_kafka.Consumer:
     return c
 
 
-def stream_kafka_topic(c:confluent_kafka.Consumer, topic: str, number_of_logs: int) -> list:
+def stream_kafka_topic(c:confluent_kafka.Consumer, topic: str, snowflake_cursor) -> list:
     """
-    Streams a predefined number of logs using the provided kafka consumer and topic
-    Returns a list of the logs
+    Constantly streams logs using the provided kafka consumer and topic
+
+    1. Directly queries logs for heart rate alerts
+
+    2. Directly queries logs for live section of dashboard
+
+    3. Appends each log to the ride_logs list
+        - When a ride comes to an end (signalled by "beginning of main" log), adds the logs for that ride to the snowflake log table
+        - When a new ride begins, it appends the new logs to the newly cleared logs list
+
+    Process is repeated
+
     """
     c.subscribe([topic])
-    data = []
+    print(f'Kafka consumer subscribed to topic: {topic}. Logs will be cached from beginning of next ride.')
+
+    ride_logs = []
+    ride_id = 0
     try:
-        while len(data) <= number_of_logs:
+        while True:
             log = c.poll(1.0)
             if log == None:
-                data.append('No message available')
+                pass
             else: 
-                key = log.key().decode('utf-8')
                 value = json.loads(log.value().decode('utf-8'))
-                topic = log.topic()
-                data.append(value['log'])
-        return data
+                value_log = value['log']
+                # ride_logs.append(f'ride id = {ride_id} {value_log}')
+                # SAVE ROOM FOR HEART RATE ANALYSIS
+                    #heart_rate = 
+                    #age = 
+
+
+                # SAVE ROOM FOR CURRENT RIDE DASH CONNECTION
+                    #user = 
+                    #gender = 
+                    #age = 
+                    #current_duration = 
+                    #latest_heart_rate = 
+                    #current_time = 
+
+                # FILLING UP RIDE LOGS AND LOADING INTO STAGING SCHEMA
+             
+                # new ride log
+                if 'new ride' in value_log:
+                    ride_id += 1
+                    print(f'New ride with id: {ride_id}. Collecting logs...')
+                    ride_logs.append(f'ride {ride_id} {value_log}')
+                    
+                # end of ride log
+                elif 'beginning of main' in value_log:
+                    if is_initial_lost_ride(ride_id):
+                        pass
+                    else:
+                        print('Ride successfully ended. Appending logs to the logs table.')
+                        append_logs_to_table(ride_logs, snowflake_cursor)
+                        ride_logs.clear()
+
+                # #mid ride logs
+                else:
+                    if is_initial_lost_ride(ride_id):
+                        pass
+                    else:
+                        ride_logs.append(f'ride {ride_id} {value_log}')
+
+                  
+
     except KeyboardInterrupt:
         pass
     finally:
         c.close()
+
+
+

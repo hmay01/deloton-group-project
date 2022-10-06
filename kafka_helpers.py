@@ -1,8 +1,13 @@
-import confluent_kafka
+import json
 import uuid
 from os import getenv
-import json
+
+import confluent_kafka
+from dotenv import load_dotenv
+
 from snowflake_helpers import append_logs_to_table, is_initial_lost_ride
+
+load_dotenv()
 
 KAFKA_TOPIC_NAME = getenv('KAFKA_TOPIC')
 KAFKA_SERVER = getenv('KAFKA_SERVER')
@@ -62,7 +67,7 @@ def stream_kafka_topic(c:confluent_kafka.Consumer, topic: str, snowflake_cursor)
             else: 
                 value = json.loads(log.value().decode('utf-8'))
                 value_log = value['log']
-                # ride_logs.append(f'ride id = {ride_id} {value_log}')
+            
                 # SAVE ROOM FOR HEART RATE ANALYSIS
                     #heart_rate = 
                     #age = 

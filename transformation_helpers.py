@@ -1,7 +1,7 @@
 import json
 import re
 from datetime import date
-
+from datetime import timedelta
 import pandas as pd
 
 
@@ -49,6 +49,33 @@ def get_users_df(formatted_df:pd.DataFrame) -> pd.DataFrame:
     user_df = unique_user_system_logs[user_columns]
     user_df = user_df.set_index('user_id')
     return user_df
+
+
+def get_staging_rides_df(formatted_df):
+    staging_ride_columns =  ['ride_id', 'user_id', 'time', 'duration_secs', 'heart_rate', 'resistance', 'power', 'rpm']
+    staging_rides_df = formatted_df[staging_ride_columns]
+    staging_rides_df = add_total_duration_column(staging_rides_df)
+    staging_rides_df = add_total_power_column(staging_rides_df)
+    staging_rides_df = add_max_heart_rate_column(staging_rides_df)
+    staging_rides_df = add_min_heart_rate_column(staging_rides_df)
+    staging_rides_df = add_avg_heart_rate_column(staging_rides_df)
+    staging_rides_df = add_avg_resistance_column(staging_rides_df)
+    staging_rides_df = add_avg_rpm_column(staging_rides_df)
+    staging_rides_df = add_start_time_column(staging_rides_df)
+    staging_rides_df = add_end_time_column(staging_rides_df)
+    return staging_rides_df
+
+def get_final_rides_df(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
+    """ 
+    Takes in the joined df for all logs "formatted_df" and returns only those columns relevant for final rides table
+    """
+    final_ride_columns = ['ride_id', 'user_id', 'start_time', 'end_time', 'total_duration', 'max_heart_rate_bpm', 'min_heart_rate_bpm', 'avg_heart_rate_bpm', 'avg_resistance', 'avg_rpm', 'total_power_kilojoules']
+    rides_df = staging_rides_df[final_ride_columns]
+    rides_df = rides_df.drop_duplicates()
+    rides_df = rides_df.dropna()
+    rides_df = rides_df.set_index('ride_id')
+    return rides_df
+
 
 def get_age(dob:date) -> int:
     """
@@ -318,4 +345,87 @@ def add_original_source_column(df:pd.DataFrame) -> pd.DataFrame:
     """
     df['original_source'] = df['log'].apply(get_value_from_user_dict, args=['original_source'])
     return df
+
+
+def add_total_duration_column(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the total duration column to the staging_rides_df df
+    """
+    staging_rides_df['total_duration'] = staging_rides_df.groupby(by=['ride_id'], dropna=False)['duration_secs'].transform('max')
+    staging_rides_df['total_duration'] = staging_rides_df['total_duration'].apply(lambda x: str(timedelta(seconds=x)))
+    return staging_rides_df
+
+
+
+def add_total_power_column(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the total power kilojoules column to the staging_rides_df df
+    """
+    staging_rides_df['total_power_kilojoules'] = staging_rides_df.groupby('ride_id', dropna=False)['power'].transform('sum')
+    staging_rides_df['total_power_kilojoules'] = staging_rides_df['total_power_kilojoules'].apply(lambda x: round(x/1000, 2))
+    return staging_rides_df
+
+
+def add_max_heart_rate_column(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the max heart rate column to the staging_rides_df df
+    """
+    staging_rides_df['max_heart_rate_bpm'] = staging_rides_df.groupby('ride_id', dropna=False)['heart_rate'].transform('max')
+    staging_rides_df['max_heart_rate_bpm'] = staging_rides_df['max_heart_rate_bpm'].apply(lambda x: int(x))
+    return staging_rides_df
+
+
+def add_min_heart_rate_column(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the min heart rate column to the staging_rides_df df
+    """
+    staging_rides_df['min_heart_rate_bpm'] = staging_rides_df.groupby('ride_id', dropna=False)['heart_rate'].transform('min')
+    staging_rides_df['min_heart_rate_bpm'] = staging_rides_df['min_heart_rate_bpm'].apply(lambda x: int(x))
+    return staging_rides_df
+
+def add_avg_heart_rate_column(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the average heart rate column to the staging_rides_df df
+    """
+    staging_rides_df['avg_heart_rate_bpm'] = staging_rides_df.groupby('ride_id', dropna=False)['heart_rate'].transform('mean')
+    staging_rides_df['avg_heart_rate_bpm'] = staging_rides_df['avg_heart_rate_bpm'].apply(lambda x: int(x))
+    return staging_rides_df
+
+
+def add_avg_resistance_column(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the average resistance setting column to the staging_rides_df df
+    """
+    staging_rides_df['avg_resistance'] = staging_rides_df.groupby('ride_id', dropna=False)['resistance'].transform('mean')
+    staging_rides_df['avg_resistance'] = staging_rides_df['avg_resistance'].apply(lambda x: int(x))
+    return staging_rides_df
+
+
+def add_avg_rpm_column(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the average rotations per minute column to the staging_rides_df df
+    """
+    staging_rides_df['avg_rpm'] = staging_rides_df.groupby('ride_id', dropna=False)['rpm'].transform('mean')
+    staging_rides_df['avg_rpm'] = staging_rides_df['avg_rpm'].apply(lambda x: int(x))
+    return staging_rides_df
+
+
+def add_start_time_column(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the start time column to the staging_rides_df df
+    """
+    staging_rides_df['start_time'] = staging_rides_df.groupby('ride_id', dropna=False)['time'].transform('min')
+    staging_rides_df['start_time'] = staging_rides_df['start_time'].apply(lambda x: x.round(freq='S'))
+    return staging_rides_df
+
+def add_end_time_column(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the end time column to the staging_rides_df df
+    """
+    staging_rides_df['end_time'] = staging_rides_df.groupby('ride_id', dropna=False)['time'].transform('max')
+    staging_rides_df['end_time'] = staging_rides_df['end_time'].apply(lambda x: x.round(freq='S'))
+    return staging_rides_df
+
+
+
 

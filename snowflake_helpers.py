@@ -112,7 +112,8 @@ def create_users_table(cs: snowflake.connector.cursor):
     """
     cs.execute(f"""
             CREATE OR REPLACE TABLE USERS
-            ("name" STRING,
+            ("user_id" INTEGER,
+            "name" STRING,
             "gender" STRING,
             "date_of_birth" DATETIME,
             "age" FLOAT,
@@ -143,7 +144,8 @@ def create_rides_table(cs: snowflake.connector.cursor):
     """
     cs.execute(f"""
             CREATE OR REPLACE TABLE RIDES
-            ("user_id" INTEGER,
+            ("ride_id" INTEGER,
+            "user_id" INTEGER,
             "start_time" DATETIME,
             "end_time" DATETIME,
             "total_duration" STRING,

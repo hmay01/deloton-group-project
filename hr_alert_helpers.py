@@ -3,7 +3,6 @@ from botocore.exceptions import ClientError
 
 
 SENDER = "trainee.john.andemeskel@sigmalabs.co.uk"
-RECIPIENT = "trainee.john.andemeskel@sigmalabs.co.uk"
 AWS_REGION = "us-east-1"
 SUBJECT = "Important Message: Heart rate alert"
 BODY_TEXT = (" Your heart rate was picked up at an abnormal rhythm, please seek medical attention! ")
@@ -35,14 +34,14 @@ def is_abnormal(heart_rate: int, age:int) -> bool:
     else:
         return False
 
-def create_email():
+def create_email(recipient):
     """
     Builds the email to be sent as a heart-rate alert
     """
     client = boto3.client('ses',region_name=AWS_REGION)
     response = client.send_email(
                 Destination=
-                {'ToAddresses': [RECIPIENT]},
+                {'ToAddresses': [recipient]},
                 Message={
                     'Body': {
                         'Html': {'Charset': CHARSET,'Data': BODY_HTML},
@@ -57,12 +56,12 @@ def create_email():
     return response
 
 
-def send_alert():
+def send_alert(recipient):
     """
     Fires off the email to the rider if abnormal heart rate occurs
     """
     try:
-        response = create_email()
+        response = create_email(recipient)
     except ClientError as e:
         print(e.response['Error']['Message'])
     else:

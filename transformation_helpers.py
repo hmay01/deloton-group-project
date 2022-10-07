@@ -10,7 +10,6 @@ def get_joined_formatted_df(logs_df:pd.DataFrame) -> pd.DataFrame:
     """
 
     # general columns
-    logs_df = add_ride_id_column(logs_df)
     logs_df = add_is_new_ride_column(logs_df)
     logs_df = add_is_info_column(logs_df)
     logs_df = add_is_system_column(logs_df)
@@ -90,15 +89,6 @@ def get_age(dob:date) -> int:
     else:
         return today.year - dob.year
 
-
-def reg_extract_ride_id(log: str):
-    '''Parse ride_id from given log text'''
-    search = re.search('^(ride )([0-9]*)', log)
-    if search is not None: 
-        ride_id = search.group(2)
-        return ride_id
-    else:
-        return None
 
 def reg_extract_log_datetime(log: str):
     '''Parse log datetime from given log text'''
@@ -259,12 +249,6 @@ def get_value_from_user_dict(log:str, value:str) -> pd.Series:
     else:
         return None
 
-def add_ride_id_column(df:pd.DataFrame) -> pd.DataFrame:
-    """ 
-    Applies the ride_id regex to each log and adds the result into a new column
-    """
-    df['ride_id'] = df['log'].apply(reg_extract_ride_id)
-    return df
 
 def add_user_id_column(df:pd.DataFrame) -> pd.DataFrame:
     """ 

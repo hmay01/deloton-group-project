@@ -31,7 +31,7 @@ def get_rides() -> json:
         return search_word
 
 @app.route('/ride/<id>', methods=['GET','DELETE'])
-def ride_id(id:str) -> json:
+def ride_id(id:int) -> json:
     """
     For a given ID string input, returns a different JSON object
     based on the chosen request method
@@ -44,7 +44,7 @@ def ride_id(id:str) -> json:
         return
 
 @app.route('/rider/<user_id>', methods=['GET'])
-def get_rider_info(user_id:str) -> json:
+def get_rider_info(user_id:int) -> json:
     """
     Returns a JSON object containing rider information (e.g. name, gender, age, 
     avg. heart rate, number of rides) for a rider with a specific ID string input
@@ -52,7 +52,7 @@ def get_rider_info(user_id:str) -> json:
     return
 
 @app.route('/rider/<user_id>/rides', methods=['GET'])
-def get_all_rides_for_given_user(user_id:str) -> json:
+def get_all_rides_for_given_user(user_id:int) -> json:
     """
     Returns a JSON object containing all rides for a rider with 
     a specific ID string input
@@ -73,6 +73,9 @@ def get_rider_info_by_id(id:int) -> json:
     Returns a json object of rider information (name, gender, age) for 
     a given user_id
     """
+    rider_info_df = cs.execute(f'SELECT * FROM USERS WHERE "user_id" = {id};').fetch_pandas_all()
+    rider_info_json = convert_to_json(rider_info_df)
+    return rider_info_json
 
 
 def convert_to_json(result_set_df:pd.DataFrame) -> json:

@@ -4,6 +4,7 @@ from typing import List, Optional
 import pandas as pd
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, inspect, text
+import sqlalchemy
 
 
 #sql wrapper
@@ -54,7 +55,7 @@ class SQLConnection():
         if if_exists == 'fail':
             print(f'TABLE {table_name} already exists in {schema}')
         elif if_exists == 'append':
-            print(f'Dataframe with {df.shape[0]} rows appended to  {table_name} in {schema}')
+            print(f'Dataframe with {df.shape[0]} rows appended to {table_name} in {schema}')
         elif if_exists == 'replace':
             print(f'New dataframe with {df.shape[0]} rows added to {schema}')
     
@@ -71,3 +72,14 @@ class SQLConnection():
         res = pd.read_sql_table(table_name, con=self.engine, schema=schema)
         print(f'SQL READ from {schema}.{table_name}')
         return res
+
+
+
+
+def add_empty_logs_table(sql:SQLConnection, staging_schema:str, logs_table:str):
+    """ 
+    Adds an empty logs table to staging schema so that there are no incomplete rides
+    """
+    empty_df = pd.DataFrame({'ride_id':pd.Series([],dtype='int64'), 'log':pd.Series([],dtype='object')})
+    sql.write_df_to_table(empty_df, staging_schema, logs_table, 'replace')
+    return

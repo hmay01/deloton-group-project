@@ -25,7 +25,7 @@ def index() -> str:
 def get_rides() -> json:
     search_word = request.args.get('date')
     if search_word == None:
-        return 
+        return #Get all of the rides in the current day
     else:
         #Get all rides for a specific date
         return search_word
@@ -40,8 +40,8 @@ def ride_id(id:int) -> json:
         return get_ride_by_id(id)
 
     elif (request.method == 'DELETE'):
-        #Delete a with a specific ID
-        return
+
+        return delete_by_id(id)
 
 @app.route('/rider/<user_id>', methods=['GET'])
 def get_rider_info(user_id:int) -> json:
@@ -67,6 +67,14 @@ def get_ride_by_id(id:int) -> json:
     ride_by_id_df = cs.execute(f'SELECT * FROM RIDES WHERE "ride_id" = {id};').fetch_pandas_all()
     ride_by_id_json = convert_to_json(ride_by_id_df)
     return   ride_by_id_json
+def delete_by_id(id:int):
+    """
+    Deletes a ride with a specific ID
+    """
+    ride_to_delete = cs.execute(f'SELECT * FROM RIDES WHERE "ride_id" = {id};')
+    cs.delete(ride_to_delete)
+    cs.commit() 
+    return 'Ride Deleted!', 200
 
 def get_rider_info_by_id(user_id:int) -> json:
     """

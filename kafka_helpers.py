@@ -134,3 +134,7 @@ def stream_hr_kafka_topic(c:confluent_kafka.Consumer, topic: str) -> list:
         pass
     finally:
         c.close()
+
+
+def is_initial_lost_ride(ride_id: int) -> bool:
+    return True if ride_id == 0 else False

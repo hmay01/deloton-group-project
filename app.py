@@ -5,7 +5,7 @@
 import json
 from datetime import datetime, timedelta
 
-from flask import Flask, request,jsonify
+from flask import Flask, jsonify, request
 
 from snowflake_helpers import *
 

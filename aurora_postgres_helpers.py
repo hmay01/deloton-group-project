@@ -52,6 +52,11 @@ class SQLConnection():
         '''Writes a DataFrame to a SQL table'''
         df.to_sql(table_name, schema = schema, con=self.engine, index=False, if_exists='replace')
         print(f'TABLE {table_name} ADDED to {schema}')
+    
+    def append_df_to_table(self, df:pd.DataFrame, schema:str, table_name:str) -> None:
+        '''Appends a DataFrame to a SQL table'''
+        df.to_sql(table_name, schema = schema, con=self.engine, index=False, if_exists='append')
+        print(f'Dataframe with {df.shape[0]} rows appended to  {table_name} in {schema}')
 
     def drop_table(self, schema:str, table_name:str) -> None:
         '''Drops a table from SQL schema'''

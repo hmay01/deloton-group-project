@@ -4,7 +4,7 @@ from typing import List, Optional
 import pandas as pd
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, inspect, text
-import sqlalchemy
+
 
 
 #sql wrapper

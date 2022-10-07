@@ -6,10 +6,9 @@ import confluent_kafka
 from dotenv import load_dotenv
 import pandas as pd
 
-from snowflake_helpers import append_logs_to_table, is_initial_lost_ride
 from transformation_helpers import reg_extract_heart_rate, get_value_from_user_dict, get_age
 import hr_alert_helpers as alert
-from aurora_postgres_helpers import SQLConnection
+
 
 load_dotenv()
 

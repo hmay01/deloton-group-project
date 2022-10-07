@@ -77,6 +77,21 @@ def get_rider_info_by_id(user_id:int) -> json:
     rider_info_json = convert_to_json(rider_info_df)
     return rider_info_json
 
+def get_all_rides_for_rider(user_id):
+    """
+    Returns a json object of aggregate ride (avg. heart rate, number of rides) info fo a
+    given rider, given a user_id
+    """
+    rides_df = cs.execute(f'SELECT * FROM RIDES WHERE "user_id" = {user_id};').fetch_pandas_all()
+    rides_json = convert_to_json(rides_df)
+    return rides_json
+
+def get_rider_aggregate_ride_info(id):
+    """
+    Returns a json object of aggregate ride (avg. heart rate, number of rides) info fo a
+    given rider, given a user_id
+    """
+    aggregate_ride_info_df = cs.execute(f'SELECT * FROM RIDES WHERE "user_id" = {user_id};').fetch_pandas_all()
 
 def convert_to_json(result_set_df:pd.DataFrame) -> json:
     """

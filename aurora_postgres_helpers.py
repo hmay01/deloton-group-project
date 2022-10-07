@@ -55,7 +55,7 @@ class SQLConnection():
         if if_exists == 'fail':
             print(f'TABLE {table_name} already exists in {schema}')
         elif if_exists == 'append':
-            print(f'Dataframe with {df.shape[0]} rows appended to {table_name} in {schema}')
+            print(f'Dataframe with {df.shape[0]} ROW(S) APPENDED to {table_name} in {schema}')
         elif if_exists == 'replace':
             print(f'New dataframe with {df.shape[0]} rows added to {schema}')
     

@@ -49,7 +49,7 @@ def get_rider_info(user_id:int) -> json:
     Returns a JSON object containing rider information (e.g. name, gender, age, 
     avg. heart rate, number of rides) for a rider with a specific ID string input
     """
-    return
+    return get_rider_info_by_id(user_id)
 
 @app.route('/rider/<user_id>/rides', methods=['GET'])
 def get_all_rides_for_given_user(user_id:int) -> json:
@@ -68,12 +68,12 @@ def get_ride_by_id(id:int) -> json:
     ride_by_id_json = convert_to_json(ride_by_id_df)
     return   ride_by_id_json
 
-def get_rider_info_by_id(id:int) -> json:
+def get_rider_info_by_id(user_id:int) -> json:
     """
     Returns a json object of rider information (name, gender, age) for 
     a given user_id
     """
-    rider_info_df = cs.execute(f'SELECT * FROM USERS WHERE "user_id" = {id};').fetch_pandas_all()
+    rider_info_df = cs.execute(f'SELECT * FROM USERS WHERE "user_id" = {user_id};').fetch_pandas_all()
     rider_info_json = convert_to_json(rider_info_df)
     return rider_info_json
 

@@ -3,12 +3,12 @@ import uuid
 from os import getenv
 
 import confluent_kafka
-from dotenv import load_dotenv
 import pandas as pd
+from dotenv import load_dotenv
 
-from transformation_helpers import reg_extract_heart_rate, get_value_from_user_dict, get_age
 import hr_alert_helpers as alert
-
+from transformation_helpers import (get_age, get_value_from_user_dict,
+                                    reg_extract_heart_rate)
 
 load_dotenv()
 

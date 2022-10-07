@@ -9,6 +9,7 @@ import pandas as pd
 from snowflake_helpers import append_logs_to_table, is_initial_lost_ride
 from transformation_helpers import reg_extract_heart_rate, get_value_from_user_dict, get_age
 import hr_alert_helpers as alert
+from aurora_postgres_helpers import SQLConnection
 
 load_dotenv()
 
@@ -42,7 +43,7 @@ def connect_to_kafka_consumer() -> confluent_kafka.Consumer:
     return c
 
 
-def stream_kafka_topic(c:confluent_kafka.Consumer, topic: str, snowflake_cursor) -> list:
+def stream_ingestion_kafka_topic(c:confluent_kafka.Consumer, topic: str, sql, sql_schema, sql_table_name) -> list:
     """
     Constantly streams logs using the provided kafka consumer and topic
 
@@ -69,22 +70,10 @@ def stream_kafka_topic(c:confluent_kafka.Consumer, topic: str, snowflake_cursor)
                 value = json.loads(log.value().decode('utf-8'))
                 value_log = value['log'] 
 
-
-                # SAVE ROOM FOR CURRENT RIDE DASH CONNECTION
-                    #user = 
-                    #gender = 
-                    #age = 
-                    #current_duration = 
-                    #latest_heart_rate = 
-                    #current_time = 
-
-                # FILLING UP RIDE LOGS AND LOADING INTO STAGING SCHEMA
-             
-                # new ride log
                 if 'new ride' in value_log:
                     ride_id += 1
                     print(f'New ride with id: {ride_id}. Collecting logs...')
-                    ride_logs.append(f'ride {ride_id} {value_log}')
+                    ride_logs.append(value_log)
                     
                 # end of ride log
                 elif 'beginning of main' in value_log:
@@ -92,7 +81,10 @@ def stream_kafka_topic(c:confluent_kafka.Consumer, topic: str, snowflake_cursor)
                         pass
                     else:
                         print('Ride successfully ended. Appending logs to the logs table.')
-                        append_logs_to_table(ride_logs, snowflake_cursor)
+                        #make a mini df and append to logs
+                        series_of_ride_id = [ride_id] * len(ride_logs)
+                        latest_ride_df = pd.DataFrame({'ride_id': series_of_ride_id, 'log':ride_logs})
+                        sql.write_df_to_table(latest_ride_df, sql_schema, sql_table_name, 'append')
                         ride_logs.clear()
 
                 # #mid ride logs
@@ -100,7 +92,7 @@ def stream_kafka_topic(c:confluent_kafka.Consumer, topic: str, snowflake_cursor)
                     if is_initial_lost_ride(ride_id):
                         pass
                     else:
-                        ride_logs.append(f'ride {ride_id} {value_log}')
+                        ride_logs.append(value_log)
 
                   
 

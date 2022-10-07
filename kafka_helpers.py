@@ -4,8 +4,11 @@ from os import getenv
 
 import confluent_kafka
 from dotenv import load_dotenv
+import pandas as pd
 
 from snowflake_helpers import append_logs_to_table, is_initial_lost_ride
+from transformation_helpers import reg_extract_heart_rate, get_value_from_user_dict, get_age
+import hr_alert_helpers as alert
 
 load_dotenv()
 
@@ -43,11 +46,9 @@ def stream_kafka_topic(c:confluent_kafka.Consumer, topic: str, snowflake_cursor)
     """
     Constantly streams logs using the provided kafka consumer and topic
 
-    1. Directly queries logs for heart rate alerts
+    1. Directly queries logs for live section of dashboard
 
-    2. Directly queries logs for live section of dashboard
-
-    3. Appends each log to the ride_logs list
+    2. Appends each log to the ride_logs list
         - When a ride comes to an end (signalled by "beginning of main" log), adds the logs for that ride to the snowflake log table
         - When a new ride begins, it appends the new logs to the newly cleared logs list
 
@@ -66,11 +67,7 @@ def stream_kafka_topic(c:confluent_kafka.Consumer, topic: str, snowflake_cursor)
                 pass
             else: 
                 value = json.loads(log.value().decode('utf-8'))
-                value_log = value['log']
-            
-                # SAVE ROOM FOR HEART RATE ANALYSIS
-                    #heart_rate = 
-                    #age = 
+                value_log = value['log'] 
 
 
                 # SAVE ROOM FOR CURRENT RIDE DASH CONNECTION
@@ -113,4 +110,35 @@ def stream_kafka_topic(c:confluent_kafka.Consumer, topic: str, snowflake_cursor)
         c.close()
 
 
+def stream_hr_kafka_topic(c:confluent_kafka.Consumer, topic: str) -> list:
+    """
+    Constantly streams logs using the provided kafka consumer and topic
+    to directly query logs for heart rate alerts
+    """
+    c.subscribe([topic])
+    print(f'Kafka consumer subscribed to topic: {topic}. Logs will be cached from beginning of next ride.')
 
+    age = None
+    try:
+        while True:
+            log = c.poll(1.0)
+            if log == None:
+                pass
+            else: 
+                value = json.loads(log.value().decode('utf-8'))
+                value_log = value['log']
+
+                if ' [SYSTEM] data' in value_log:
+                    dob_log_string = get_value_from_user_dict(value_log, 'date_of_birth')
+                    dob_timestamp = pd.Timestamp(dob_log_string, unit='ms')
+                    age = get_age(dob_timestamp)
+
+                if age != None:
+                    heart_rate = reg_extract_heart_rate(value_log)
+                    if (heart_rate != None) and (alert.is_abnormal(heart_rate, age)):
+                        alert.send_alert()
+                
+    except KeyboardInterrupt:
+        pass
+    finally:
+        c.close()

@@ -3,12 +3,12 @@ import uuid
 from os import getenv
 
 import confluent_kafka
-from dotenv import load_dotenv
 import pandas as pd
+from dotenv import load_dotenv
 
-from transformation_helpers import reg_extract_heart_rate, get_value_from_user_dict, get_age
 import hr_alert_helpers as alert
-
+from transformation_helpers import (get_age, get_value_from_user_dict,
+                                    reg_extract_heart_rate)
 
 load_dotenv()
 
@@ -42,15 +42,13 @@ def connect_to_kafka_consumer() -> confluent_kafka.Consumer:
     return c
 
 
-def stream_ingestion_kafka_topic(c:confluent_kafka.Consumer, topic: str, sql, sql_schema, sql_table_name) -> list:
+def stream_ingestion_kafka_topic(c:confluent_kafka.Consumer, topic: str, sql, sql_schema, logs_table) -> list:
     """
     Constantly streams logs using the provided kafka consumer and topic
 
-    1. Directly queries logs for live section of dashboard
-
-    2. Appends each log to the ride_logs list
-        - When a ride comes to an end (signalled by "beginning of main" log), adds the logs for that ride to the snowflake log table
-        - When a new ride begins, it appends the new logs to the newly cleared logs list
+    Appends each log to the ride_logs list
+        - When a ride comes to an end (signalled by "beginning of main" log), appends the logs for that ride to the SQL logs table
+        - When a new ride begins, it appends the new logs to the newly cleared ride_logs list
 
     Process is repeated
 
@@ -83,7 +81,7 @@ def stream_ingestion_kafka_topic(c:confluent_kafka.Consumer, topic: str, sql, sq
                         #make a mini df and append to logs
                         series_of_ride_id = [ride_id] * len(ride_logs)
                         latest_ride_df = pd.DataFrame({'ride_id': series_of_ride_id, 'log':ride_logs})
-                        sql.write_df_to_table(latest_ride_df, sql_schema, sql_table_name, 'append')
+                        sql.write_df_to_table(latest_ride_df, sql_schema, logs_table, 'append')
                         ride_logs.clear()
 
                 # #mid ride logs
@@ -92,9 +90,6 @@ def stream_ingestion_kafka_topic(c:confluent_kafka.Consumer, topic: str, sql, sq
                         pass
                     else:
                         ride_logs.append(value_log)
-
-                  
-
     except KeyboardInterrupt:
         pass
     finally:

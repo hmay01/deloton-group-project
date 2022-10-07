@@ -45,7 +45,7 @@ def get_users_df(formatted_df:pd.DataFrame) -> pd.DataFrame:
     unique_user_system_logs = system_logs.drop_duplicates('user_id')
     user_columns = ['user_id', 'name', 'gender', 'date_of_birth', 'age', 'height_cm', 'weight_kg', 'address', 'email_address', 'account_created', 'bike_serial', 'original_source']
     user_df = unique_user_system_logs[user_columns]
-    print('Users dataframe ready to be added to snowflake production schema.')
+    print('Users dataframe ready to be added to SQL production schema.')
     return user_df
 
 
@@ -71,7 +71,7 @@ def get_final_rides_df(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
     rides_df = staging_rides_df[final_ride_columns]
     rides_df = rides_df.drop_duplicates()
     rides_df = rides_df.dropna()
-    print('Rides dataframe ready to be added to snowflake production schema.')
+    print('Rides dataframe ready to be added to SQL production schema.')
     return rides_df
 
 

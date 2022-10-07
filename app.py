@@ -38,7 +38,7 @@ def ride_id(id:str) -> json:
     """
     if (request.method == 'GET'):
         return get_ride_by_id(id)
-        
+
     elif (request.method == 'DELETE'):
         #Delete a with a specific ID
         return
@@ -60,13 +60,20 @@ def get_all_rides_for_given_user(user_id:str) -> json:
     return
 
 
-def get_ride_by_id(id) -> json:
+def get_ride_by_id(id:int) -> json:
     """
     Returns a json object of a ride for a given ride_id
     """
-    daily_rides_df = cs.execute(f'SELECT * FROM RIDES WHERE "ride_id" = {id};').fetch_pandas_all()
-    daily_rides_json = convert_to_json(daily_rides_df)
-    return   daily_rides_json
+    ride_by_id_df = cs.execute(f'SELECT * FROM RIDES WHERE "ride_id" = {id};').fetch_pandas_all()
+    ride_by_id_json = convert_to_json(ride_by_id_df)
+    return   ride_by_id_json
+
+def get_rider_info_by_id(id:int) -> json:
+    """
+    Returns a json object of rider information (name, gender, age) for 
+    a given user_id
+    """
+
 
 def convert_to_json(result_set_df:pd.DataFrame) -> json:
     """

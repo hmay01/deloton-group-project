@@ -90,9 +90,6 @@ def stream_ingestion_kafka_topic(c:confluent_kafka.Consumer, topic: str, sql, sq
                         pass
                     else:
                         ride_logs.append(value_log)
-
-                  
-
     except KeyboardInterrupt:
         pass
     finally:

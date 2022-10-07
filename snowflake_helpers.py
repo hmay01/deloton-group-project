@@ -12,7 +12,7 @@ WAREHOUSE = getenv('WAREHOUSE')
 DATABASE = getenv('DATABASE')
 SIGMA_SCHEMA = getenv('SIGMA_SCHEMA')
 STAGING_SCHEMA = getenv('STAGING_SCHEMA')
-
+PRODUCTION_SCHEMA = getenv('PRODUCTION_SCHEMA')
 
 def connect_to_snowflake() -> snowflake.connector.cursor:
     """

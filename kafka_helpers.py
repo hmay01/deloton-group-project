@@ -132,11 +132,12 @@ def stream_hr_kafka_topic(c:confluent_kafka.Consumer, topic: str) -> list:
                     dob_log_string = get_value_from_user_dict(value_log, 'date_of_birth')
                     dob_timestamp = pd.Timestamp(dob_log_string, unit='ms')
                     age = get_age(dob_timestamp)
+                    recipient = get_value_from_user_dict('email_address')
 
                 if age != None:
                     heart_rate = reg_extract_heart_rate(value_log)
                     if (heart_rate != None) and (alert.is_abnormal(heart_rate, age)):
-                        alert.send_alert()
+                        alert.send_alert(recipient)
                 
     except KeyboardInterrupt:
         pass

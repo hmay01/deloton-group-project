@@ -11,7 +11,7 @@ from snowflake_helpers import *
 
 conn = connect_to_snowflake()
 cs = conn.cursor()
-use_staging_schema(cs)
+cs.execute(f"USE SCHEMA {PRODUCTION_SCHEMA}")
 
 app = Flask(__name__)
 
@@ -25,7 +25,7 @@ def index() -> str:
 def get_rides() -> json:
     search_word = request.args.get('date')
     if search_word == None:
-        return get_daily_rides()
+        return 
     else:
         #Get all rides for a specific date
         return search_word
@@ -37,8 +37,8 @@ def ride_id(id:str) -> json:
     based on the chosen request method
     """
     if (request.method == 'GET'):
-        #Get a ride with a specific ID
-        return
+        return get_ride_by_id(id)
+        
     elif (request.method == 'DELETE'):
         #Delete a with a specific ID
         return
@@ -60,11 +60,11 @@ def get_all_rides_for_given_user(user_id:str) -> json:
     return
 
 
-def get_daily_rides() -> json:
+def get_ride_by_id(id) -> json:
     """
-    Returns a json object of all the rides in the current day
+    Returns a json object of a ride for a given ride_id
     """
-    daily_rides_df = cs.execute("SELECT * FROM DF_TEST_TABLE").fetch_pandas_all()
+    daily_rides_df = cs.execute(f'SELECT * FROM RIDES WHERE "ride_id" = {id};').fetch_pandas_all()
     daily_rides_json = convert_to_json(daily_rides_df)
     return   daily_rides_json
 

@@ -49,7 +49,10 @@ def get_rider_info(user_id:int) -> json:
     Returns a JSON object containing rider information (e.g. name, gender, age, 
     avg. heart rate, number of rides) for a rider with a specific ID string input
     """
-    return get_rider_info_by_id(user_id)
+    return {
+        'Rider information': get_rider_info_by_id(user_id),
+        'Aggregate ride information': get_rider_aggregate_ride_info(user_id)
+    }
 
 @app.route('/rider/<user_id>/rides', methods=['GET'])
 def get_all_rides_for_given_user(user_id:int) -> json:
@@ -86,12 +89,14 @@ def get_all_rides_for_rider(user_id:int) -> json:
     rides_json = convert_to_json(rides_df)
     return rides_json
 
-def get_rider_aggregate_ride_info(id):
+def get_rider_aggregate_ride_info(user_id):
     """
     Returns a json object of aggregate ride (avg. heart rate, number of rides) info fo a
     given rider, given a user_id
     """
-    aggregate_ride_info_df = cs.execute(f'SELECT * FROM RIDES WHERE "user_id" = {user_id};').fetch_pandas_all()
+    aggregate_ride_info_df = cs.execute(f'SELECT COUNT("ride_id") AS "number_of_rides" FROM RIDES WHERE "user_id" = {user_id};').fetch_pandas_all()
+    aggregate_ride_info_json = convert_to_json(aggregate_ride_info_df)
+    return aggregate_ride_info_json
 
 def convert_to_json(result_set_df:pd.DataFrame) -> json:
     """

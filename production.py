@@ -2,11 +2,6 @@ import warnings
 
 from pandas.core.common import SettingWithCopyWarning
 
-from snowflake_helpers import (connect_to_snowflake, create_production_schema,
-                               create_rides_table, create_users_table,
-                               get_logs_table_as_df, use_production_schema,
-                               write_pandas_to_rides_table,
-                               write_pandas_to_users_table)
 from transformation_helpers import (get_final_rides_df,
                                     get_joined_formatted_df,
                                     get_staging_rides_df, get_users_df)

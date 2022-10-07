@@ -1,7 +1,9 @@
 from os import getenv
 
+import pandas as pd
 import snowflake.connector
 from dotenv import load_dotenv
+from snowflake.connector.pandas_tools import write_pandas
 
 load_dotenv()
 #SNOWFLAKE
@@ -94,3 +96,72 @@ def append_logs_to_table(logs: list, cs:snowflake.connector.cursor):
 
 def is_initial_lost_ride(ride_id: int) -> bool:
     return True if ride_id == 0 else False
+
+def get_logs_table_as_df(cs:snowflake.connector.cursor) -> pd.DataFrame:
+    """ 
+    fetch_pandas_all on the result of a SELECT * query on the logs table in the staging schema
+    """
+    df = cs.execute('SELECT * FROM yusra_stories_staging.logs').fetch_pandas_all()
+    print('Logs table from staging schema loaded into dataframe.')
+    return df
+
+
+def create_users_table(cs: snowflake.connector.cursor):
+    """ 
+    Creates the production ready users table
+    """
+    cs.execute(f"""
+            CREATE OR REPLACE TABLE USERS
+            ("user_id" INTEGER,
+            "name" STRING,
+            "gender" STRING,
+            "date_of_birth" DATETIME,
+            "age" FLOAT,
+            "height_cm" FLOAT,
+            "weight_kg" FLOAT,
+            "address" STRING,
+            "email_address" STRING,
+            "account_created" DATETIME,
+            "bike_serial" STRING,
+            "original_source" STRING
+            )
+    """)
+    print('Empty users table created.')
+
+
+def write_pandas_to_users_table(conn:snowflake.connector.connection, user_df:pd.DataFrame):
+    """ 
+    Writes the latest version of the users dataframe to the USERS table.
+    """
+    write_pandas(conn, user_df, 'USERS')
+    print(f'WRITTEN TO THE PRODUCTION SCHEMA table: USERS')
+
+
+
+def create_rides_table(cs: snowflake.connector.cursor):
+    """ 
+    Creates the production ready rides table
+    """
+    cs.execute(f"""
+            CREATE OR REPLACE TABLE RIDES
+            ("ride_id" INTEGER,
+            "user_id" INTEGER,
+            "start_time" DATETIME,
+            "end_time" DATETIME,
+            "total_duration" STRING,
+            "max_heart_rate_bpm" INTEGER,
+            "min_heart_rate_bpm" INTEGER,
+            "avg_heart_rate_bpm" INTEGER,
+            "avg_resistance" INTEGER,
+            "avg_rpm" INTEGER,
+            "total_power_kilojoules" FLOAT
+            )
+    """)
+    print('Empty rides table created.')
+
+def write_pandas_to_rides_table(conn:snowflake.connector.connection, rides_df:pd.DataFrame):
+    """ 
+    Writes the latest version of the rides dataframe to the RIDES table.
+    """
+    write_pandas(conn, rides_df, 'RIDES')
+    print(f'WRITTEN TO THE PRODUCTION SCHEMA table: RIDES')

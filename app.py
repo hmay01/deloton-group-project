@@ -60,6 +60,12 @@ def get_all_rides_for_given_user(user_id:int) -> json:
     return get_all_rides_for_rider(user_id)
 
 
+
+
+def get_todays_rides():
+    #Get all of the rides in the current day
+    return
+
 def get_ride_by_id(id:int) -> json:
     """
     Returns a json object of a ride for a given ride_id
@@ -67,13 +73,13 @@ def get_ride_by_id(id:int) -> json:
     ride_by_id_df = cs.execute(f'SELECT * FROM RIDES WHERE "ride_id" = {id};').fetch_pandas_all()
     ride_by_id_json = convert_to_json(ride_by_id_df)
     return   ride_by_id_json
+
 def delete_by_id(id:int):
     """
     Deletes a ride with a specific ID
     """
-    ride_to_delete = cs.execute(f'SELECT * FROM RIDES WHERE "ride_id" = {id};')
-    cs.delete(ride_to_delete)
-    cs.commit() 
+    cs.execute(f'DELETE FROM RIDES WHERE "ride_id" = {id};')
+
     return 'Ride Deleted!', 200
 
 def get_rider_info_by_id(user_id:int) -> json:

@@ -61,9 +61,12 @@ def get_all_rides_for_given_user(user_id:int) -> json:
 
 
 
-
 def get_todays_rides():
     #Get all of the rides in the current day
+    return
+
+def get_rides_at_specific_date(date:str):
+    #Get all rides for a specific date
     return
 
 def get_ride_by_id(id:int) -> json:
@@ -74,7 +77,7 @@ def get_ride_by_id(id:int) -> json:
     ride_by_id_json = convert_to_json(ride_by_id_df)
     return   ride_by_id_json
 
-def delete_by_id(id:int):
+def delete_by_id(id:int) -> str:
     """
     Deletes a ride with a specific ID
     """

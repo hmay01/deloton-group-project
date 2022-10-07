@@ -77,7 +77,7 @@ def get_rider_info_by_id(user_id:int) -> json:
     rider_info_json = convert_to_json(rider_info_df)
     return rider_info_json
 
-def get_all_rides_for_rider(user_id):
+def get_all_rides_for_rider(user_id:int) -> json:
     """
     Returns a json object of aggregate ride (avg. heart rate, number of rides) info fo a
     given rider, given a user_id

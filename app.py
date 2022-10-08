@@ -74,6 +74,9 @@ def get_all_rides_for_given_user(user_id:int) -> json:
 
 def get_todays_rides():
     #Get all of the rides in the current day
+    todays_rides = db.session.execute("""
+    SELECT * FROM 
+    """)
     return
 
 def get_rides_at_specific_date(date:str):
@@ -92,7 +95,7 @@ def delete_by_id(id:int) -> str:
     """
     Deletes a ride with a specific ID
     """
-    ride_to_delete = db.session.execute(f'DELETE FROM RIDES WHERE "ride_id" = {id};')
+    ride_to_delete = db.session.execute(f'DELETE FROM yusra_stories_production.rides WHERE "ride_id" = {id};')
     db.session.delete(ride_to_delete)
     db.session.commit()
     return 'Ride Deleted!', 200
@@ -105,13 +108,13 @@ def get_rider_info_by_id(user_id:int) -> json:
     rider_info_result = db.session.execute(f"""
     WITH aggregate_rides AS (
         SELECT "user_id", COUNT("ride_id") AS "number_of_rides" , ROUND(AVG("avg_heart_rate_bpm")) AS "avg_heart_rate_bpm"
-        FROM RIDES
+        FROM yusra_stories_production.rides
         WHERE "user_id" = {user_id}
         GROUP BY "user_id"
     )
     SELECT  "user_id", "name", "gender", "age", "height_cm", "weight_kg", 
     "address", "email_address", "number_of_rides", "avg_heart_rate_bpm"
-    FROM USERS 
+    FROM yusra_stories_production.users
     JOIN aggregate_rides
     USING ("user_id");
     """)
@@ -124,7 +127,7 @@ def get_all_rides_for_rider(user_id:int) -> json:
     Returns a json object of aggregate ride (avg. heart rate, number of rides) info fo a
     given rider, given a user_id
     """
-    rides_for_rider_results = db.session.execute(f'SELECT * FROM RIDES WHERE "user_id" = {user_id};')
+    rides_for_rider_results = db.session.execute(f'SELECT * FROM yusra_stories_production.rides WHERE "user_id" = {user_id};')
     rides_for_rider_list = format_rides_as_list(rides_for_rider_results)
     rides_for_rider_json = jsonify(rides_for_rider_list)
     return rides_for_rider_json

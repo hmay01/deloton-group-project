@@ -91,6 +91,16 @@ def get_todays_rides():
 
 def get_rides_at_specific_date(date:str):
     #Get all rides for a specific date
+    formatted_date = format_date(date)
+    rides_at_specified_date_result = db.session.execute(f"""
+    WITH rides AS (  
+    SELECT *, CAST(start_time AS DATE) AS start_date
+    FROM yusra_stories_production.rides
+    )
+    SELECT * 
+    FROM rides
+    WHERE start_date = '{formatted_date}';
+    """)
     return
 
 def get_ride_by_id(id:int) -> json:

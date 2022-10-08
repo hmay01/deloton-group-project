@@ -60,7 +60,7 @@ def get_rider_info(user_id:int) -> json:
     Returns a JSON object containing rider information (e.g. name, gender, age, 
     avg. heart rate, number of rides) for a rider with a specific ID string input
     """
-    return 
+    return get_rider_info_by_id(user_id)
 
 @app.route('/rider/<user_id>/rides', methods=['GET'])
 def get_all_rides_for_given_user(user_id:int) -> json:

@@ -124,8 +124,8 @@ def get_all_rides_for_rider(user_id:int) -> json:
     Returns a json object of aggregate ride (avg. heart rate, number of rides) info fo a
     given rider, given a user_id
     """
-    rides_for_rider_results = db.session.execute(f'SELECT * FROM RIDES WHERE "user_id" = {user_id};').fetch_pandas_all()
-    rides_json = convert_to_json(rides_df)
+    rides_for_rider_results = db.session.execute(f'SELECT * FROM RIDES WHERE "user_id" = {user_id};')
+    rides_for_rider_list = convert_to_json(rides_df)
     return rides_json
 
 def format_rides_as_list(rides):

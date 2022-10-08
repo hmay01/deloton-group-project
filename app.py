@@ -20,10 +20,6 @@ group_user = getenv('GROUP_USER')
 group_user_pass = getenv('GROUP_USER_PASS')
 
 
-conn = connect_to_snowflake()
-cs = conn.cursor()
-cs.execute(f"USE SCHEMA {PRODUCTION_SCHEMA}")
-
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'

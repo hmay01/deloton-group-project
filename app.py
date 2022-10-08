@@ -101,7 +101,9 @@ def get_rides_at_specific_date(date:str):
     FROM rides
     WHERE start_date = '{formatted_date}';
     """)
-    return
+    rides_at_specified_date_list = format_rides_as_list(rides_at_specified_date_result)
+    rides_at_specified_date_json = jsonify(rides_at_specified_date_list)
+    return rides_at_specified_date_json
 
 def get_ride_by_id(id:int) -> json:
     """

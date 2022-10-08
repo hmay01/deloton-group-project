@@ -82,7 +82,7 @@ def get_todays_rides():
     FROM yusra_stories_production.rides
     )
     SELECT * 
-    FROM yusra_stories_production.rides 
+    FROM rides
     WHERE start_date = '{current_date}';
     """)
     todays_rides_list = format_rides_as_list(todays_rides_result)
@@ -183,7 +183,8 @@ def get_current_date() -> str:
     date = str(datetime.now().date())
     return date
 
-
+def format_date (search_word):
+    date_list = search_word.split('-')
 
 
 

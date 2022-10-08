@@ -85,10 +85,8 @@ def get_ride_by_id(id:int) -> json:
     Returns a json object of a ride for a given ride_id
     """
     ride_by_id_result = db.session.execute(f'SELECT * FROM yusra_stories_production.rides WHERE ride_id = {id};')
-
-    ride_by_id_dict = ride_by_id_result.mappings().all()
-
-    return  jsonify(ride_by_id_dict)
+    ride_by_id_list = [format_ride_as_dict(ride) for ride in ride_by_id_result]
+    return   jsonify(ride_by_id_list)
 
 def format_ride_as_dict(ride):
     return {

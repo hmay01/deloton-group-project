@@ -84,7 +84,7 @@ def get_todays_rides():
     """)
     todays_rides_list = format_rides_as_list(todays_rides_result)
     todays_rides_json = jsonify(todays_rides_list)
-    return
+    return todays_rides_json
 
 def get_rides_at_specific_date(date:str):
     #Get all rides for a specific date

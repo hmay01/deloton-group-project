@@ -102,7 +102,7 @@ def get_rider_info_by_id(user_id:int) -> json:
     Returns a json object of rider information (name, gender, age ect) and 
     aggregate ride info (avg. heart rate, number of rides) for a given user_id
     """
-    rider_info_df = db.session.execute(f"""
+    rider_info_result = db.session.execute(f"""
     WITH aggregate_rides AS (
         SELECT "user_id", COUNT("ride_id") AS "number_of_rides" , ROUND(AVG("avg_heart_rate_bpm")) AS "avg_heart_rate_bpm"
         FROM RIDES
@@ -115,9 +115,18 @@ def get_rider_info_by_id(user_id:int) -> json:
     JOIN aggregate_rides
     USING ("user_id");
     """)
-    rider_info_list = format_rides_as_list(rider_info_df)
+    rider_info_list = format_rides_as_list(rider_info_result)
     rider_info_json = jsonify(rider_info_list)
     return rider_info_json
+
+def get_all_rides_for_rider(user_id:int) -> json:
+    """
+    Returns a json object of aggregate ride (avg. heart rate, number of rides) info fo a
+    given rider, given a user_id
+    """
+    rides_df = cs.execute(f'SELECT * FROM RIDES WHERE "user_id" = {user_id};').fetch_pandas_all()
+    rides_json = convert_to_json(rides_df)
+    return rides_json
 
 def format_rides_as_list(ride_by_id_result):
     return [format_ride_as_dict(ride) for ride in ride_by_id_result]
@@ -156,14 +165,7 @@ def format_rider_info_as_dict(rider_info):
 
 
 
-# def get_all_rides_for_rider(user_id:int) -> json:
-#     """
-#     Returns a json object of aggregate ride (avg. heart rate, number of rides) info fo a
-#     given rider, given a user_id
-#     """
-#     rides_df = cs.execute(f'SELECT * FROM RIDES WHERE "user_id" = {user_id};').fetch_pandas_all()
-#     rides_json = convert_to_json(rides_df)
-#     return rides_json
+
 
 # def convert_to_json(result_set_df:pd.DataFrame) -> json:
 #     """

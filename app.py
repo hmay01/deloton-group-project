@@ -129,7 +129,7 @@ def get_rider_info_by_id(user_id:int) -> json:
     JOIN aggregate_rides
     USING ("user_id");
     """)
-    rider_info_list = format_rides_as_list(rider_info_result)
+    rider_info_list = format_rider_info_as_list(rider_info_result)
     rider_info_json = jsonify(rider_info_list)
     return rider_info_json
 

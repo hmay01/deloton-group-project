@@ -89,7 +89,8 @@ def get_ride_by_id(id:int) -> json:
     """
     ride_by_id_result = db.session.execute(f'SELECT * FROM yusra_stories_production.rides WHERE ride_id = {id};')
     ride_by_id_list = format_rides_as_list(ride_by_id_result)
-    return   jsonify(ride_by_id_list)
+    ride_by_id_json = jsonify(ride_by_id_list)
+    return  ride_by_id_json
 
 def delete_by_id(id:int) -> str:
     """

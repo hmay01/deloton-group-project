@@ -117,13 +117,14 @@ def format_rider_info_as_dict(rider_info):
         "avg_heart_rate_bpm": rider_info.avg_heart_rate_bpm
     }
 
-# def delete_by_id(id:int) -> str:
-#     """
-#     Deletes a ride with a specific ID
-#     """
-#     cs.execute(f'DELETE FROM RIDES WHERE "ride_id" = {id};')
-
-#     return 'Ride Deleted!', 200
+def delete_by_id(id:int) -> str:
+    """
+    Deletes a ride with a specific ID
+    """
+    ride_to_delete = db.session.execute(f'DELETE FROM RIDES WHERE "ride_id" = {id};')
+    db.session.delete(ride_to_delete)
+    db.session.commit()
+    return 'Ride Deleted!', 200
 
 # def get_rider_info_by_id(user_id:int) -> json:
 #     """

@@ -188,6 +188,11 @@ def get_current_date() -> str:
 
 def format_date (search_word):
     date_list = search_word.split('-')
+    day = date_list[0]
+    month = date_list[1]
+    year = date_list[2]
+    formatted_date = year +'-'+ month +'-' + day
+    return formatted_date
 
 
 

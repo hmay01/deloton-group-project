@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, inspect, text
 
 
-
 #sql wrapper
 class SQLConnection():
     load_dotenv()
@@ -55,10 +54,20 @@ class SQLConnection():
         if if_exists == 'fail':
             print(f'TABLE {table_name} already exists in {schema}')
         elif if_exists == 'append':
-            print(f'Dataframe with {df.shape[0]} ROW(S) APPENDED to {table_name} in {schema}')
+            if df.shape[0] == 1:
+                print(f'{df.shape[0]} ROW APPENDED TO {table_name.upper()} in {schema}')
+            elif df.shape[0] > 1:
+                print(f'{df.shape[0]} ROWS APPENDED TO {table_name.upper()} in {schema}')
         elif if_exists == 'replace':
             print(f'New dataframe with {df.shape[0]} rows added to {schema}')
     
+    def list_production_tables(self) -> list:
+        """ 
+        Queries the information schema for tables in the production schema and returns existing tables in list
+        """
+        tables_info = self.read_query(self, "select * from information_schema.tables where table_schema = 'yusra_stories_production'")
+        return list(tables_info.table_name)
+ 
 
     def drop_table(self, schema:str, table_name:str) -> None:
         '''Drops a table from SQL schema'''
@@ -75,7 +84,6 @@ class SQLConnection():
 
 
 
-
 def add_empty_logs_table(sql:SQLConnection, staging_schema:str, logs_table:str):
     """ 
     Adds an empty logs table to staging schema so that there are no incomplete rides
@@ -83,3 +91,35 @@ def add_empty_logs_table(sql:SQLConnection, staging_schema:str, logs_table:str):
     empty_df = pd.DataFrame({'ride_id':pd.Series([],dtype='int64'), 'log':pd.Series([],dtype='object')})
     sql.write_df_to_table(empty_df, staging_schema, logs_table, 'replace')
     return
+
+def get_latest_ride_logs(sql: SQLConnection) -> pd.DataFrame:
+    """ 
+    Queries the logs table in the staging schema for the logs with the max ride id (latest logs)
+    Returns the result as a dataframe
+    """
+    return sql.read_query(sql, """ 
+            SELECT * 
+            FROM yusra_stories_staging.logs
+            WHERE ride_id = (SELECT MAX("ride_id") FROM yusra_stories_staging.logs)
+            """
+            )
+
+def user_already_in_table(sql, user_id: int) -> bool:
+    """ 
+    Queries the user table in the production schema to see if the latest user has already been added
+    """
+    
+    print(f'CHECKING if user_id {user_id} in USERS TABLE...')
+    if 'users' in sql.list_production_tables(sql):
+        query_df = sql.read_query(sql, f"""
+                            SELECT * 
+                            FROM yusra_stories_production.users
+                            WHERE user_id = {user_id}
+                        """)
+        if query_df.shape[0] >= 1:
+            return True
+        else:
+            return False
+    else:
+        return False
+

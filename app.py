@@ -68,7 +68,7 @@ def get_all_rides_for_given_user(user_id:int) -> json:
     Returns a JSON object containing all rides for a rider with 
     a specific ID string input
     """
-    return 
+    return get_all_rides_for_rider(user_id)
 
 
 

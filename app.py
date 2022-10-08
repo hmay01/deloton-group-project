@@ -146,8 +146,8 @@ def get_all_rides_for_rider(user_id:int) -> json:
 def format_rides_as_list(rides):
     return [format_ride_as_dict(ride) for ride in rides]
 
-def format_rider_info_as_list(rider_info):
-    return [format_ride_as_dict(ride) for ride in rides]
+def format_rider_info_as_list(riders_info):
+    return [format_rider_info_as_dict(rider_info) for rider_info in riders_info]
 
 def format_ride_as_dict(ride):
     return {

@@ -175,7 +175,13 @@ def format_rider_info_as_dict(rider_info):
         "avg_heart_rate_bpm": rider_info.avg_heart_rate_bpm
     }
 
-
+def get_current_date() -> str:
+    """
+    Returns the date going forward a specified number of days 
+    from the current date
+    """
+    date = str(datetime.now().date())
+    return date
 
 
 
@@ -191,10 +197,3 @@ def format_rider_info_as_dict(rider_info):
 #     result_set_json = json.dumps(result_set_dict, indent=4) 
 #     return result_set_json
 
-def get_current_date() -> str:
-    """
-    Returns the date going forward a specified number of days 
-    from the current date
-    """
-    date = str(datetime.now().date())
-    return date

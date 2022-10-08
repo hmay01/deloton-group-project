@@ -3,11 +3,16 @@
 # %pip install pyarrow
 
 import json
+from os import getenv
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
 
 from flask import Flask, jsonify, request
 
 from snowflake_helpers import *
+
+
+
 
 conn = connect_to_snowflake()
 cs = conn.cursor()

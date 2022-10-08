@@ -36,7 +36,7 @@ def index() -> str:
 def get_rides() -> json:
     search_word = request.args.get('date')
     if search_word == None:
-        
+
         return get_todays_rides()
     else:
         #Get all rides for a specific date
@@ -80,7 +80,7 @@ def get_todays_rides():
     todays_rides_result = db.session.execute(f"""
     SELECT * 
     FROM yusra_stories_production.rides 
-    WHERE start_time > {current_date} and start_time < {tomorrow_date}
+    WHERE start_time > '{current_date}' and start_time < '{tomorrow_date}'
     """)
     todays_rides_list = format_rides_as_list(todays_rides_result)
     todays_rides_json = jsonify(todays_rides_list)

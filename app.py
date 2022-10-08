@@ -34,13 +34,13 @@ def index() -> str:
 
 @app.route('/daily', methods=['GET'])
 def get_rides() -> json:
-    search_word = request.args.get('date')
-    if search_word == None:
+    searched_date = request.args.get('date')
+    if searched_date == None:
 
         return get_todays_rides()
     else:
         #Get all rides for a specific date
-        return search_word
+        return get_rides_at_specific_date(searched_date)
 
 @app.route('/ride/<id>', methods=['GET','DELETE'])
 def ride_id(id:int) -> json:
@@ -198,8 +198,8 @@ def get_current_date() -> str:
     date = str(datetime.now().date())
     return date
 
-def format_date (search_word):
-    date_list = search_word.split('-')
+def format_date (searched_date):
+    date_list = searched_date.split('-')
     day = date_list[0]
     month = date_list[1]
     year = date_list[2]

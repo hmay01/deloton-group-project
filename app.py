@@ -75,8 +75,7 @@ def get_all_rides_for_given_user(user_id:int) -> json:
 
 def get_todays_rides():
     #Get all of the rides in the current day
-    current_date = get_variable_date(0)
-    tomorrow_date = get_variable_date(1)
+    current_date = get_current_date()
     todays_rides_result = db.session.execute(f"""
     WITH rides AS (  
     SELECT *, CAST(start_time AS DATE) AS start_date

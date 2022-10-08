@@ -74,8 +74,12 @@ def get_all_rides_for_given_user(user_id:int) -> json:
 
 def get_todays_rides():
     #Get all of the rides in the current day
-    todays_rides = db.session.execute("""
-    SELECT * FROM 
+    current_date = get_variable_date(0)
+    tomorrow_date = get_variable_date(1)
+    todays_rides = db.session.execute(f"""
+    SELECT * 
+    FROM yusra_stories_production.rides 
+    WHERE start_time > {current_date} and 
     """)
     return
 
@@ -181,10 +185,10 @@ def format_rider_info_as_dict(rider_info):
 #     result_set_json = json.dumps(result_set_dict, indent=4) 
 #     return result_set_json
 
-# def get_variable_date(num_days: int) -> str:
-#     """
-#     Returns the date going forward a specified number of days 
-#     from the current date
-#     """
-#     date = str(datetime.now().date() + timedelta(days = num_days))
-#     return date
+def get_variable_date(num_days: int) -> str:
+    """
+    Returns the date going forward a specified number of days 
+    from the current date
+    """
+    date = str(datetime.now().date() + timedelta(days = num_days))
+    return date

@@ -85,8 +85,20 @@ def get_ride_by_id(id:int) -> json:
     Returns a json object of a ride for a given ride_id
     """
     ride_by_id_result = db.session.execute(f'SELECT * FROM yusra_stories_production.rides WHERE ride_id = {id};')
-    ride_by_id_list = [format_ride_as_dict(ride) for ride in ride_by_id_result]
+    ride_by_id_list = format_rides_as_list(ride_by_id_result)
     return   jsonify(ride_by_id_list)
+
+def delete_by_id(id:int) -> str:
+    """
+    Deletes a ride with a specific ID
+    """
+    ride_to_delete = db.session.execute(f'DELETE FROM RIDES WHERE "ride_id" = {id};')
+    db.session.delete(ride_to_delete)
+    db.session.commit()
+    return 'Ride Deleted!', 200
+
+def format_rides_as_list(ride_by_id_result):
+    return [format_ride_as_dict(ride) for ride in ride_by_id_result]
 
 def format_ride_as_dict(ride):
     return {
@@ -117,14 +129,7 @@ def format_rider_info_as_dict(rider_info):
         "avg_heart_rate_bpm": rider_info.avg_heart_rate_bpm
     }
 
-def delete_by_id(id:int) -> str:
-    """
-    Deletes a ride with a specific ID
-    """
-    ride_to_delete = db.session.execute(f'DELETE FROM RIDES WHERE "ride_id" = {id};')
-    db.session.delete(ride_to_delete)
-    db.session.commit()
-    return 'Ride Deleted!', 200
+
 
 # def get_rider_info_by_id(user_id:int) -> json:
 #     """

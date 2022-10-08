@@ -6,7 +6,7 @@ import pandas as pd
 
 def get_joined_formatted_df(logs_df:pd.DataFrame) -> pd.DataFrame:
     """ 
-    Adds all the necessary columns to the logs_df
+    Adds all the necessary columns to the latest_logs df
     """
 
     # general columns
@@ -42,14 +42,15 @@ def get_users_df(formatted_df:pd.DataFrame) -> pd.DataFrame:
     Takes in the newly formatted (joined) df for latest logs and returns only those columns relevant for user table
     """
     system_logs = formatted_df[(formatted_df['is_system']) == True]
-    unique_user_system_logs = system_logs.drop_duplicates('user_id')
     user_columns = ['user_id', 'name', 'gender', 'date_of_birth', 'age', 'height_cm', 'weight_kg', 'address', 'email_address', 'account_created', 'bike_serial', 'original_source']
-    user_df = unique_user_system_logs[user_columns]
-    print('Users dataframe ready to be added to SQL production schema.')
+    user_df = system_logs[user_columns]
     return user_df
 
 
 def get_staging_rides_df(formatted_df):
+    """ 
+    Takes in the formatted df for the latest logs and adds columns which will be used for the rides df
+    """
     staging_ride_columns =  ['ride_id', 'user_id', 'time', 'duration_secs', 'heart_rate', 'resistance', 'power', 'rpm']
     staging_rides_df = formatted_df[staging_ride_columns]
     staging_rides_df = add_total_duration_column(staging_rides_df)
@@ -65,13 +66,13 @@ def get_staging_rides_df(formatted_df):
 
 def get_final_rides_df(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
     """ 
-    Takes in the joined df for all logs "formatted_df" and returns only those columns relevant for final rides table
+    Takes in the staging rides df for the latest ride and returns only those columns relevant for final rides table
     """
     final_ride_columns = ['ride_id', 'user_id', 'start_time', 'end_time', 'total_duration', 'max_heart_rate_bpm', 'min_heart_rate_bpm', 'avg_heart_rate_bpm', 'avg_resistance', 'avg_rpm', 'total_power_kilojoules']
     rides_df = staging_rides_df[final_ride_columns]
     rides_df = rides_df.drop_duplicates()
     rides_df = rides_df.dropna()
-    print('Rides dataframe ready to be added to SQL production schema.')
+    print(f'RIDE INFO GATHERED for ride_id: {staging_rides_df["ride_id"][0]}')
     return rides_df
 
 

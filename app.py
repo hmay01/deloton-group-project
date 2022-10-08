@@ -78,9 +78,13 @@ def get_todays_rides():
     current_date = get_variable_date(0)
     tomorrow_date = get_variable_date(1)
     todays_rides_result = db.session.execute(f"""
+    WITH rides AS (  
+    SELECT *, CAST(start_time AS DATE) AS start_date
+    FROM yusra_stories_production.rides
+    )
     SELECT * 
     FROM yusra_stories_production.rides 
-    WHERE start_time > '{current_date}' and start_time < '{tomorrow_date}'
+    WHERE start_date = '{current_date}';
     """)
     todays_rides_list = format_rides_as_list(todays_rides_result)
     todays_rides_json = jsonify(todays_rides_list)
@@ -188,10 +192,10 @@ def format_rider_info_as_dict(rider_info):
 #     result_set_json = json.dumps(result_set_dict, indent=4) 
 #     return result_set_json
 
-def get_variable_date(num_days: int) -> str:
+def get_current_date() -> str:
     """
     Returns the date going forward a specified number of days 
     from the current date
     """
-    date = str(datetime.now().date() + timedelta(days = num_days))
+    date = str(datetime.now().date())
     return date

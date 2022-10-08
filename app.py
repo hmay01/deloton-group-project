@@ -104,7 +104,18 @@ def format_ride_as_dict(ride):
     }
 
 def format_rider_info_as_dict(rider_info):
-    
+    return {
+        "user_id": rider_info.user_id,
+        "name": rider_info.name,
+        "gender": rider_info.gender,
+        "age": rider_info.age,
+        "height_cm": rider_info.height_cm,
+        "weight_kg": rider_info.weight_kg,
+        "address": rider_info.address,
+        "email_address": rider_info.email_address,
+        "number_of_rides": rider_info.number_of_rides,
+        "avg_heart_rate_bpm": rider_info.avg_heart_rate_bpm
+    }
 
 # def delete_by_id(id:int) -> str:
 #     """

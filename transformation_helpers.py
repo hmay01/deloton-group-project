@@ -39,7 +39,7 @@ def get_joined_formatted_df(logs_df:pd.DataFrame) -> pd.DataFrame:
 
 def get_users_df(formatted_df:pd.DataFrame) -> pd.DataFrame:
     """ 
-    Takes in the joined df for all logs "formatted_df" and returns only those columns relevant for user table
+    Takes in the newly formatted (joined) df for latest logs and returns only those columns relevant for user table
     """
     system_logs = formatted_df[(formatted_df['is_system']) == True]
     unique_user_system_logs = system_logs.drop_duplicates('user_id')

@@ -52,7 +52,7 @@ def ride_id(id:int) -> json:
 
     elif (request.method == 'DELETE'):
 
-        return
+        return delete_by_id(id)
 
 @app.route('/rider/<user_id>', methods=['GET'])
 def get_rider_info(user_id:int) -> json:

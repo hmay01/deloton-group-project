@@ -96,9 +96,10 @@ def get_todays_rides() -> json:
     todays_rides_json = jsonify(todays_rides_list)
     return todays_rides_json
 
-def get_rides_at_specific_date(date:str):
+def get_rides_at_specific_date(date:str) -> json:
     """
-    For a given date string input
+    For a given date string input, 
+    Returns a JSON object of the corresponding rides 
     """
     formatted_date = format_date(date)
     rides_at_specified_date_result = db.session.execute(f"""
@@ -164,13 +165,13 @@ def get_all_rides_for_rider(user_id:int) -> json:
     rides_for_rider_json = jsonify(rides_for_rider_list)
     return rides_for_rider_json
 
-def format_rides_as_list(rides):
+def format_rides_as_list(rides) -> list:
     return [format_ride_as_dict(ride) for ride in rides]
 
 def format_rider_info_as_list(riders_info):
     return [format_rider_info_as_dict(rider_info) for rider_info in riders_info]
 
-def format_ride_as_dict(ride):
+def format_ride_as_dict(ride) -> dict:
     return {
         "ride_id": ride.ride_id,
         "user_id": ride.user_id,
@@ -185,7 +186,7 @@ def format_ride_as_dict(ride):
         "total_power_kilojoules": ride.total_power_kilojoules
     }
 
-def format_rider_info_as_dict(rider_info):
+def format_rider_info_as_dict(rider_info) -> dict:
     return {
         "user_id": rider_info.user_id,
         "name": rider_info.name,
@@ -207,7 +208,10 @@ def get_current_date() -> str:
     date = str(datetime.now().date())
     return date
 
-def format_date (searched_date):
+def format_date (searched_date:str) -> str:
+    """
+    Formats searched date parameter
+    """
     date_list = searched_date.split('-')
     day = date_list[0]
     month = date_list[1]

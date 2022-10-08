@@ -34,12 +34,17 @@ def index() -> str:
 
 @app.route('/daily', methods=['GET'])
 def get_rides() -> json:
+    """
+    Returns a JSON object of all rides occuring on the date specified
+    with the query parameter. If no date is searched, returns a JSON 
+    object of all dates on the current date
+    """
     searched_date = request.args.get('date')
     if searched_date == None:
 
         return get_todays_rides()
     else:
-        #Get all rides for a specific date
+       
         return get_rides_at_specific_date(searched_date)
 
 @app.route('/ride/<id>', methods=['GET','DELETE'])

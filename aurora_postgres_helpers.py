@@ -37,7 +37,7 @@ class SQLConnection():
                 con.execute(f"""GRANT ALL PRIVILEGES ON SCHEMA {schema_name} TO {self.group_user};""")
         print(f'Schemas: {schema_list} added to DB')
 
-
+    @staticmethod 
     def read_query(self, query:str) -> Optional[List[str]]:
         '''Executes a query and returns the result'''
         res = None

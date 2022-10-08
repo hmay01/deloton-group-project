@@ -97,6 +97,28 @@ def delete_by_id(id:int) -> str:
     db.session.commit()
     return 'Ride Deleted!', 200
 
+def get_rider_info_by_id(user_id:int) -> json:
+    """
+    Returns a json object of rider information (name, gender, age ect) and 
+    aggregate ride info (avg. heart rate, number of rides) for a given user_id
+    """
+    rider_info_df = db.session.execute(f"""
+    WITH aggregate_rides AS (
+        SELECT "user_id", COUNT("ride_id") AS "number_of_rides" , ROUND(AVG("avg_heart_rate_bpm")) AS "avg_heart_rate_bpm"
+        FROM RIDES
+        WHERE "user_id" = {user_id}
+        GROUP BY "user_id"
+    )
+    SELECT  "user_id", "name", "gender", "age", "height_cm", "weight_kg", 
+    "address", "email_address", "number_of_rides", "avg_heart_rate_bpm"
+    FROM USERS 
+    JOIN aggregate_rides
+    USING ("user_id");
+    """)
+    rider_info_list = format_rides_as_list(rider_info_df)
+    rider_info_json = jsonify(rider_info_list)
+    return rider_info_json
+
 def format_rides_as_list(ride_by_id_result):
     return [format_ride_as_dict(ride) for ride in ride_by_id_result]
 
@@ -131,26 +153,7 @@ def format_rider_info_as_dict(rider_info):
 
 
 
-# def get_rider_info_by_id(user_id:int) -> json:
-#     """
-#     Returns a json object of rider information (name, gender, age ect) and 
-#     aggregate ride info (avg. heart rate, number of rides) for a given user_id
-#     """
-#     rider_info_df = cs.execute(f"""
-#     WITH aggregate_rides AS (
-#         SELECT "user_id", COUNT("ride_id") AS "number_of_rides" , ROUND(AVG("avg_heart_rate_bpm")) AS "avg_heart_rate_bpm"
-#         FROM RIDES
-#         WHERE "user_id" = {user_id}
-#         GROUP BY "user_id"
-#     )
-#     SELECT  "user_id", "name", "gender", "age", "height_cm", "weight_kg", 
-#     "address", "email_address", "number_of_rides", "avg_heart_rate_bpm"
-#     FROM USERS 
-#     JOIN aggregate_rides
-#     USING ("user_id");
-#     """).fetch_pandas_all()
-#     rider_info_json = convert_to_json(rider_info_df)
-#     return rider_info_json
+
 
 
 # def get_all_rides_for_rider(user_id:int) -> json:

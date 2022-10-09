@@ -57,7 +57,7 @@ def ride_id(id:int) -> json:
     if (request.method == 'GET'):
         return get_ride_by_id(id)
 
-    elif (request.method == 'DELETE'):
+    if (request.method == 'DELETE'):
 
         return delete_by_id(id)
 
@@ -129,7 +129,7 @@ def delete_by_id(id:int) -> str:
     """
     Deletes a ride with a specific ID
     """
-    ride_to_delete = db.session.execute(f'DELETE FROM yusra_stories_production.rides WHERE "ride_id" = {id};')
+    ride_to_delete = db.session.execute(f'SELECT * FROM yusra_stories_production.rides WHERE "ride_id" = {id};')
     db.session.delete(ride_to_delete)
     db.session.commit()
     return 'Ride Deleted!', 200

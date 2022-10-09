@@ -3,3 +3,5 @@ pandas
 confluent-kafka
 python-dotenv
 postgres
+SQLAlchemy
+boto3

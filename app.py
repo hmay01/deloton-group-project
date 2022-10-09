@@ -3,13 +3,14 @@
 # %pip install pyarrow
 
 import json
+from datetime import datetime
 from os import getenv
-from datetime import datetime, timedelta
-from dotenv import load_dotenv
 
+from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 
+load_dotenv()
 
 db_host = getenv('DB_HOST')
 db_port = getenv('DB_PORT')

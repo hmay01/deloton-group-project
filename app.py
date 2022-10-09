@@ -159,6 +159,7 @@ def delete_by_id(id:int) -> str:
     Deletes a ride with a specific ID
     """
     db.session.execute(f'DELETE FROM yusra_stories_production.rides WHERE ride_id = {id};')
+    db.session.commit()
   
     return 'Ride Deleted!', 200
 

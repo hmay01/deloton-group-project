@@ -144,12 +144,14 @@ def output_graphs_to_png(graphs: list, graph_names: list):
         
 def save_graph_as_png(fig: px.graph_objs._figure.Figure, fig_name: str):
     """
-    
+    Converts a plotly graph input to a png image stored in the images directory
     """
     fig.write_image(f"images/{fig_name}.png")
 
 def graph_block_template(fig_name: str) -> str:
-
+    """
+    Creates an html string for an image insert for a given figure name
+    """
     graph_block =  (''
             
                 f'<img style="height: 400px;" src="images/{fig_name}.png">'
@@ -159,6 +161,10 @@ def graph_block_template(fig_name: str) -> str:
     return graph_block
 
 def get_report(graph_names: list, number_of_rides: np.int64) -> str:
+    """
+    Returns a html string of the report layout containing the graph 
+    image inserts for the input list of graph names 
+    """
     graphs_layout = ''
     for graph_name in graph_names:
         graphs_layout += graph_block_template(graph_name)

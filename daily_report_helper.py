@@ -24,6 +24,10 @@ def create_connection():
     con = engine.connect()
     return con
 
+def create_directory_for_images():
+    if not os.path.exists("images"):
+        os.mkdir("images")
+
 def get_number_of_rides(con):
     query = f"""
     SELECT COUNT(*) AS number_of_rides 
@@ -98,10 +102,6 @@ def get_average_ride_stats_fig(con):
 def get_graph_names() -> list:
     graph_names = ['riders_gender_split_fig', 'ages_of_riders_fig', 'riders_average_power_and_heart_rate_fig']
     return graph_names
-
-def create_directory_for_images():
-    if not os.path.exists("images"):
-        os.mkdir("images")
 
 def output_graphs_to_png(graphs, graph_names):
    for graph, graph_name in zip(graphs, graph_names):

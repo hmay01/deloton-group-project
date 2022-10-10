@@ -170,7 +170,6 @@ def save_to_bucket(file_name:str):
     aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
     aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
     region_name=os.environ['AWS_DEFAULT_REGION'],
-   
     )
     data = open(f'images/{file_name}.png', 'rb')
     s3.Bucket("yusra-stories-report-images").put_object(Key= f'{file_name}.png', Body=data)
@@ -180,26 +179,26 @@ def save_all_images_to_bucket(file_names:list):
     for file_name in file_names:
         save_to_bucket(file_name)
 
-def graph_block_template(url: str) -> str:
+def graph_block_template(fig_name: str) -> str:
     """
     Creates an html string for an image insert for a given figure name
     """
     graph_block =  (''
             
-                f'<img style="height: 400px;" src="{url}">'
+                f'<img style="height: 400px;" src="https://yusra-stories-report-images.s3.eu-west-2.amazonaws.com/{fig_name}.png">'
                 + '<hr>'
            )                   
    
     return graph_block
 
-def get_report(urls: list, number_of_rides : np.int64) -> str:
+def get_report(graph_names: list, number_of_rides : np.int64) -> str:
     """
     Returns a html string of the report layout containing the graph 
     image inserts for the input list of graph names 
     """
     graphs_layout = ''
-    for url in urls:
-        graphs_layout += graph_block_template(url)
+    for graph_name in graph_names:
+        graphs_layout += graph_block_template(graph_name)
     report_layout = (
         '<h1>Deloton Exercise Bikes Daily Report</h1>'
         + '<hr>'
@@ -209,20 +208,20 @@ def get_report(urls: list, number_of_rides : np.int64) -> str:
     )
     return report_layout
 
-def convert_html_to_pdf(source_html: str, output_filename: str) -> int:
-    """
-    Converts the input source html to a pdf file saved as the 
-    string output filename
-    """
-    result_file = open(output_filename, "w+b")
+# def convert_html_to_pdf(source_html: str, output_filename: str) -> int:
+#     """
+#     Converts the input source html to a pdf file saved as the 
+#     string output filename
+#     """
+#     result_file = open(output_filename, "w+b")
 
-    pisa_status = pisa.CreatePDF(
-            source_html,           
-            dest=result_file)           
+#     pisa_status = pisa.CreatePDF(
+#             source_html,           
+#             dest=result_file)           
 
-    result_file.close()           
+#     result_file.close()           
 
-    return pisa_status.err
+#     return pisa_status.err
 
 def create_email(recipient, BODY_HTML):
     """

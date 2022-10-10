@@ -222,14 +222,3 @@ def format_date (searched_date:str) -> str:
     return formatted_date
 
 
-
-
-# def convert_to_json(result_set_df:pd.DataFrame) -> json:
-#     """
-#     Converts a pandas DataFrame to a JSON object formatted {index: {column : value}}
-#     """
-#     result_set_json_string = result_set_df.to_json(orient="index")
-#     result_set_dict = json.loads(result_set_json_string)
-#     result_set_json = json.dumps(result_set_dict, indent=4) 
-#     return result_set_json
-

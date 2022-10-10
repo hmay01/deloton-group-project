@@ -185,7 +185,7 @@ def graph_block_template(fig_name: str) -> str:
     """
     graph_block =  (''
             
-                f'<img style="height: 400px;" src="images/{fig_name}.png">'
+                f'<img style="height: 400px;" src="s3://yusra-stories-report-images/{fig_name}.png">'
                 + '<hr>'
            )                   
    

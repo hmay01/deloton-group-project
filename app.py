@@ -28,34 +28,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# class Rides(db.Model):
-#     __tablename__ = "rides"
-#     ride_id = db.Column(db.Integer, primary_key = True)
-#     user_id = db.Column(db.Integer)
-#     start_time = db.Column(db.DateTime)
-#     end_time = db.Column(db.DateTime)
-#     total_duration = db.Column(db.String())
-#     max_heart_rate_bpm = db.Column(db.Integer)
-#     min_heart_rate_bpm = db.Column(db.Integer)
-#     avg_heart_rate_bpm = db.Column(db.Integer)
-#     avg_resistance = db.Column(db.Integer)
-#     avg_rpm = db.Column(db.Integer)
-#     total_power_kilojoules = db.Column(db.Float)
-
-    # def __repr__(self):
-    #     return "<Rides(ride_id='%s', user_id='%s', start_time='%s', end_time='%s',total_duration='%s', max_heart_rate_bpm='%s', min_heart_rate_bpm='%s', avg_heart_rate_bpm='%s', avg_resistance='%s', avg_rpm='%s', total_power_kilojoules='%s' )>" % (
-    #     self.ride_id,
-    #     self.user_id,
-    #     self.start_time,
-    #     self.end_time,
-    #     self.total_duration,
-    #     self.max_heart_rate_bpm,
-    #     self.min_heart_rate_bpm,
-    #     self.avg_heart_rate_bpm,
-    #     self.avg_resistance,
-    #     self.avg_rpm,
-    #     self.total_power_kilojoules
-    #    )
 
 @app.route('/', methods=['GET'])
 def index() -> str:

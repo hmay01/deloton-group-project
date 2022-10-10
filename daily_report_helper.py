@@ -32,7 +32,7 @@ def get_number_of_rides(con):
     query = f"""
     SELECT COUNT(*) AS number_of_rides 
     FROM yusra_stories_production.rides
-    WHERE start_time > (NOW() - interval '24 hour');
+    WHERE start_time > (NOW() - interval '48 hour');
     """
     number_of_rides = pd.read_sql_query(query, con)
     return number_of_rides._get_value(0,"number_of_rides")
@@ -51,7 +51,7 @@ def get_rider_gender_split_fig(con):
     FROM yusra_stories_production.users
     JOIN yusra_stories_production.rides
     USING (user_id)
-    WHERE start_time > (NOW() - interval '24 hour')
+    WHERE start_time > (NOW() - interval '48 hour')
     )
     SELECT gender, COUNT(*) AS number_of_riders
     FROM riders
@@ -69,7 +69,7 @@ def get_age_of_riders_fig(con):
         FROM yusra_stories_production.users
         JOIN yusra_stories_production.rides
         USING (user_id)
-        WHERE start_time > (NOW() - interval '24 hour')
+        WHERE start_time > (NOW() - interval '48 hour')
         ORDER BY age ASC
         )
     SELECT age, COUNT(*) AS number_of_riders
@@ -87,7 +87,7 @@ def get_average_ride_stats_fig(con):
     FROM yusra_stories_production.users
     JOIN yusra_stories_production.rides
     USING (user_id)
-    WHERE start_time > (NOW() - interval '24 hour')
+    WHERE start_time > (NOW() - interval '48 hour')
     GROUP BY user_id;
     """
     riders_average_power_and_heart_rate = pd.read_sql_query(query, con)

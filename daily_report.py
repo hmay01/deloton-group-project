@@ -8,4 +8,3 @@ output_graphs_to_png(graphs, graph_names)
 number_of_rides = get_number_of_rides(con)
 report = get_report(graph_names, number_of_rides)
 convert_html_to_pdf(report, 'report.pdf')
-! open report.pdf

@@ -179,16 +179,6 @@ def save_to_bucket(file_name:str):
 def save_all_images_to_bucket(file_names:list):
     for file_name in file_names:
         save_to_bucket(file_name)
-def generating_url_for_image(bucket_name, file_name):
-    url = boto3.client('s3').generate_presigned_url(
-        ClientMethod='get_object', 
-        Params={'Bucket': bucket_name, 'Key': f'{file_name}.png'},
-        ExpiresIn=604800)
-    return url
-
-def get_all_image_urls(file_names):
-    urls = [generating_url_for_image('yusra-stories-report-images', file_name) for file_name in file_names]
-    return urls
 
 def graph_block_template(url: str) -> str:
     """

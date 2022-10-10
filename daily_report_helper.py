@@ -58,7 +58,7 @@ def get_graphs(con: sqlalchemy.engine.Connection) -> list:
     graphs = [riders_gender_split_fig, ages_of_riders_fig, riders_average_power_and_heart_rate_fig]
     return graphs
 
-def get_rider_gender_split_fig(con: sqlalchemy.engine.Connection) -> px.pie :
+def get_rider_gender_split_fig(con: sqlalchemy.engine.Connection):
     """
     Given an SQLAlchemy connection
     Returns a pie chart of the gender split of riders in the last 24 hrs
@@ -79,7 +79,7 @@ def get_rider_gender_split_fig(con: sqlalchemy.engine.Connection) -> px.pie :
     riders_gender_split_fig = px.pie(riders_gender_split, values='number_of_riders', names='gender', title=f'Gender split of riders of the past day', color_discrete_sequence=px.colors.sequential.Greens_r)
     return riders_gender_split_fig
 
-def get_age_of_riders_fig(con: sqlalchemy.engine.Connection) -> px.pie:
+def get_age_of_riders_fig(con: sqlalchemy.engine.Connection) :
     """
     Given an SQLAlchemy connection
     Returns a pie chart grouping the age of riders in the last 24 hrs
@@ -103,7 +103,7 @@ def get_age_of_riders_fig(con: sqlalchemy.engine.Connection) -> px.pie:
     ages_of_riders_fig = px.pie(ages_of_riders, values='number_of_riders', names='age', title=f'Age of riders', color_discrete_sequence=px.colors.sequential.Greens_r)
     return ages_of_riders_fig
 
-def get_average_ride_stats_fig(con: sqlalchemy.engine.Connection) -> px.bar:
+def get_average_ride_stats_fig(con: sqlalchemy.engine.Connection) :
     """
     Given an SQLAlchemy connection
     Returns a bar chart of the average power against the average heart rate
@@ -142,7 +142,7 @@ def output_graphs_to_png(graphs: list, graph_names: list):
     for graph, graph_name in zip(graphs, graph_names):
             save_graph_as_png(graph, graph_name)
         
-def save_graph_as_png(fig: px, fig_name: str):
+def save_graph_as_png(fig, fig_name: str):
     """
     Converts a plotly graph input to a png image stored in the images directory
     """

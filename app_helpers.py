@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 
+
 load_dotenv()
 
 db_host = getenv('DB_HOST')

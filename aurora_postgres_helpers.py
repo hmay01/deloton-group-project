@@ -17,7 +17,7 @@ class SQLConnection():
     group_user = getenv('GROUP_USER')
     group_user_pass = getenv('GROUP_USER_PASS')
 
-    engine = create_engine(f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}')
+    engine = create_engine(f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}', pool_pre_ping=True)
 
     def create_db_schemas(self, schema_list):
         """ 

@@ -19,9 +19,10 @@ db_name = getenv('DB_NAME')
 group_user = getenv('GROUP_USER')
 group_user_pass = getenv('GROUP_USER_PASS')
 
-engine = create_engine(f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}')
-
-con = engine.connect()
+def create_connection():
+    engine = create_engine(f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}')
+    con = engine.connect()
+    return con
 
 def get_number_of_rides(con):
     query = f"""

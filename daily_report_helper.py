@@ -2,15 +2,15 @@ import os
 from base64 import b64encode
 from os import getenv
 
+import boto3
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import sqlalchemy
+from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from xhtml2pdf import pisa
-import boto3
-from botocore.exceptions import ClientError
 
 load_dotenv()
 
@@ -26,15 +26,15 @@ SENDER = "trainee.john.andemeskel@sigmalabs.co.uk"
 AWS_REGION = "us-east-1"
 SUBJECT = "Daily Report"
 BODY_TEXT = (" Your heart rate was picked up at an abnormal rhythm, please seek medical attention! ")
-BODY_HTML = """
-<html>
-  <head></head>
-  <body>
-    <iframe src="report.pdf" width="100%" height="500px">
-    </iframe>
-  </body>
-</html>  
-"""             
+# BODY_HTML = """
+# <!DOCTYPE html>
+# <html>
+#   <head></head>
+#   <body>
+#     <A href="report.pdf">
+#   </body>
+# </html>  
+# """             
 CHARSET = "UTF-8"
 
 def create_connection() -> sqlalchemy.engine.Connection:
@@ -165,6 +165,20 @@ def save_graph_as_png(fig, fig_name: str):
     """
     fig.write_image(f"images/{fig_name}.png")
 
+def save_to_bucket(file_name:str):
+    s3 = boto3.resource("s3",
+    aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+    aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+    region_name=os.environ['AWS_DEFAULT_REGION'],
+    )
+    data = open(f'images/{file_name}.png', 'rb')
+    s3.Bucket("yusra-stories-report-images").put_object(Key= f'{file_name}.png', Body=data)
+    print(f"save {file_name} to bucket")
+
+def save_all_images_to_bucket(file_names:list):
+    for file_name in file_names:
+        save_to_bucket(file_name)
+
 def graph_block_template(fig_name: str) -> str:
     """
     Creates an html string for an image insert for a given figure name
@@ -177,7 +191,7 @@ def graph_block_template(fig_name: str) -> str:
    
     return graph_block
 
-def get_report(graph_names: list, number_of_rides: np.int64) -> str:
+def get_report(graph_names: list, number_of_rides : np.int64) -> str:
     """
     Returns a html string of the report layout containing the graph 
     image inserts for the input list of graph names 
@@ -209,7 +223,7 @@ def convert_html_to_pdf(source_html: str, output_filename: str) -> int:
 
     return pisa_status.err
 
-def create_email(recipient):
+def create_email(recipient, BODY_HTML):
     """
     Builds the email to be sent as daily report
     """
@@ -230,12 +244,12 @@ def create_email(recipient):
             )
     return response
 
-def send_report(recipient):
+def send_report(recipient, BODY_HTML):
     """
     Sends daily report email to recipient
     """
     try:
-        response = create_email(recipient)
+        response = create_email(recipient, BODY_HTML)
     except ClientError as e:
         print(e.response['Error']['Message'])
     else:

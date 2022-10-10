@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 
-
 load_dotenv()
 
 db_host = getenv('DB_HOST')
@@ -113,12 +112,21 @@ def get_all_rides_for_rider(user_id:int) -> json:
     return rides_for_rider_json
 
 def format_rides_as_list(rides) -> list:
+    """
+    Returns a list of dicts for a given ride SQLAlchemy cursor result set
+    """
     return [format_ride_as_dict(ride) for ride in rides]
 
 def format_rider_info_as_list(riders_info):
+    """
+    Returns a list of dicts for a given rider info SQLAlchemy cursor result set
+    """
     return [format_rider_info_as_dict(rider_info) for rider_info in riders_info]
 
 def format_ride_as_dict(ride) -> dict:
+    """
+    Formats a ride result from the SQLAlchemy cursor result set as a dict
+    """
     return {
         "ride_id": ride.ride_id,
         "user_id": ride.user_id,
@@ -134,6 +142,9 @@ def format_ride_as_dict(ride) -> dict:
     }
 
 def format_rider_info_as_dict(rider_info) -> dict:
+    """
+    Formats a rider info result from the SQLAlchemy cursor result set as a dict
+    """
     return {
         "user_id": rider_info.user_id,
         "name": rider_info.name,

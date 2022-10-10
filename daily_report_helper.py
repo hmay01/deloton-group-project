@@ -9,6 +9,8 @@ import sqlalchemy
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from xhtml2pdf import pisa
+import boto3
+from botocore.exceptions import ClientError
 
 load_dotenv()
 
@@ -19,6 +21,21 @@ db_password = getenv('DB_PASSWORD')
 db_name = getenv('DB_NAME')
 group_user = getenv('GROUP_USER')
 group_user_pass = getenv('GROUP_USER_PASS')
+
+SENDER = "trainee.john.andemeskel@sigmalabs.co.uk"
+AWS_REGION = "us-east-1"
+SUBJECT = "Daily Report"
+BODY_TEXT = (" Your heart rate was picked up at an abnormal rhythm, please seek medical attention! ")
+BODY_HTML = """
+<html>
+  <head></head>
+  <body>
+    <iframe src="report.pdf" width="100%" height="500px">
+    </iframe>
+  </body>
+</html>  
+"""             
+CHARSET = "UTF-8"
 
 def create_connection() -> sqlalchemy.engine.Connection:
     """
@@ -191,3 +208,36 @@ def convert_html_to_pdf(source_html: str, output_filename: str) -> int:
     result_file.close()           
 
     return pisa_status.err
+
+def create_email(recipient):
+    """
+    Builds the email to be sent as daily report
+    """
+    client = boto3.client('ses',region_name=AWS_REGION)
+    response = client.send_email(
+                Destination=
+                {'ToAddresses': [recipient]},
+                Message={
+                    'Body': {
+                        'Html': {'Charset': CHARSET,'Data': BODY_HTML},
+                        'Text': {'Charset': CHARSET, 'Data': BODY_TEXT}
+                    },
+                    'Subject': {
+                        'Charset': CHARSET, 'Data': SUBJECT
+                        }
+                    },
+                Source=SENDER,
+            )
+    return response
+
+def send_report(recipient):
+    """
+    Sends daily report email to recipient
+    """
+    try:
+        response = create_email(recipient)
+    except ClientError as e:
+        print(e.response['Error']['Message'])
+    else:
+        print("Email sent! Message ID:"),
+        print(response['MessageId'])

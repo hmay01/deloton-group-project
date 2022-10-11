@@ -39,6 +39,7 @@ BODY_HTML = """<html>
 BODY_TEXT = 'Good Afternoon,\nAttached is the Daily report pdf.\nBest wishes,\nYusra stories team'
 ATTACHMENT = 'report.pdf'
 CHARSET = "utf-8"
+REGION_NAME = 'us-east-1'
 
 
 def create_connection() -> sqlalchemy.engine.Connection:
@@ -197,9 +198,7 @@ def get_report(graph_names: list, number_of_rides : np.int64) -> str:
         + '<hr>'
         + f'<h1 align="center"> {number_of_rides} Rides completed today </h1>'
         + '<hr>'
-        + graphs_layout
-    
-        
+        + graphs_layout  
     )
     return report_layout
 
@@ -258,7 +257,7 @@ def send_mail() -> dict:
     ses_client = boto3.client('ses', 
     aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
     aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
-    region_name= 'us-east-1',)
+    region_name= REGION_NAME,)
     return ses_client.send_raw_email(
         Source=SENDER,
         Destinations=[RECIPIENT],

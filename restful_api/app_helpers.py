@@ -36,7 +36,8 @@ def get_todays_rides() -> json:
     )
     SELECT * 
     FROM rides
-    WHERE start_date = '{current_date}';
+    WHERE start_date = '{current_date}'
+    ORDER BY ride_id;
     """)
     todays_rides_list = format_rides_as_list(todays_rides_result)
     todays_rides_json = jsonify(todays_rides_list)

@@ -3,9 +3,9 @@ import warnings
 
 from pandas.core.common import SettingWithCopyWarning
 
-from aurora_postgres_helpers import (SQLConnection, get_latest_ride_logs,
+from staging.aurora_postgres_helpers import (SQLConnection, get_latest_ride_logs,
                                      user_already_in_table)
-from transformation_helpers import *
+from production.transformation_helpers import *
 
 #insignificant warnings filtered as they hide important print messages
 warnings.simplefilter(action='ignore', category=FutureWarning)

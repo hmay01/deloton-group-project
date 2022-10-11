@@ -1,8 +1,6 @@
 
 import warnings
 
-from pandas.core.common import SettingWithCopyWarning
-
 from aurora_postgres_helpers import (SQLConnection, get_latest_ride_logs,
                                      user_already_in_table)
 from transformation_helpers import *
@@ -10,14 +8,13 @@ from transformation_helpers import *
 #insignificant warnings filtered as they hide important print messages
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=SyntaxWarning)
-warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
 
-if __name__ == "__main__":
+
+def handler(event, context):
 
     sql = SQLConnection
-    staging_schema = 'yusra_stories_staging'
+
     production_schema = 'yusra_stories_production'
-    logs_table = 'logs'
 
     #general transformations
     latest_logs = get_latest_ride_logs(sql)

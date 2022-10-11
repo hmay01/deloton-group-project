@@ -10,6 +10,8 @@ import hr_alert_helpers as alert
 from transformation_helpers import (get_age, get_value_from_user_dict,
                                     reg_extract_heart_rate)
 
+from sns_lambda_helpers import production_sns_trigger
+
 load_dotenv()
 
 KAFKA_TOPIC_NAME = getenv('KAFKA_TOPIC')
@@ -82,6 +84,7 @@ def stream_ingestion_kafka_topic(c:confluent_kafka.Consumer, topic: str, sql, sq
                         series_of_ride_id = [ride_id] * len(ride_logs)
                         latest_ride_df = pd.DataFrame({'ride_id': series_of_ride_id, 'log':ride_logs})
                         sql.write_df_to_table(latest_ride_df, sql_schema, logs_table, 'append')
+                        production_sns_trigger(len(ride_logs))
                         ride_logs.clear()
 
                 # #mid ride logs

@@ -207,7 +207,7 @@ def graph_block_template(url: str) -> str:
     """
     graph_block =  (''
             
-                f'<img style="height: 400px;" src="{url}">'
+                f'<img align="center" style="height: 400px;" src="{url}">'
                 + '<hr>'
            )                   
    
@@ -222,11 +222,14 @@ def get_report(urls: list, number_of_rides : np.int64) -> str:
     for url in urls:
         graphs_layout += graph_block_template(url)
     report_layout = (
-        '<h1>Deloton Exercise Bikes Daily Report</h1>'
+        ''
+        '<h1 align="center"> Deloton Exercise Bikes Daily Report</h1>'
         + '<hr>'
-        + f'<h1> {number_of_rides} Rides completed today </h1>'
+        + f'<h1 align="center"> {number_of_rides} Rides completed today </h1>'
         + '<hr>'
         + graphs_layout
+        + '<hr>'
+        + '<p>"This is a test"</p>'
     )
     return report_layout
 

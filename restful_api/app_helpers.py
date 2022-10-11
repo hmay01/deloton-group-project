@@ -10,7 +10,7 @@ from flask_sqlalchemy import SQLAlchemy
 class Functionality():
 
     load_dotenv()
-
+    
     db_host = getenv('DB_HOST')
     db_port = getenv('DB_PORT')
     db_user = getenv('DB_USER')

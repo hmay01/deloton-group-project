@@ -103,29 +103,24 @@ def get_age_of_riders_fig(con: sqlalchemy.engine.Connection) :
     Returns a pie chart grouping the age of riders in the last 24 hrs
     """
     query = f"""
-    
-    WITH distinct_riders AS (
         SELECT DISTINCT (user_id), age
         FROM yusra_stories_production.users
         JOIN yusra_stories_production.rides
         USING (user_id)
         WHERE start_time > (NOW() - interval '24 hour')
-        ORDER BY age ASC
-        )
-    SELECT age, COUNT(*) AS number_of_riders
-    FROM distinct_riders
-    GROUP BY age
-    ORDER BY age;
+        ORDER BY age ASC;
     """
     ages_of_riders = pd.read_sql_query(query, con)
-    ages_of_riders_fig = px.pie(ages_of_riders, values='number_of_riders', names='age', title=f'Age of riders', color_discrete_sequence=px.colors.sequential.Greens_r)
+    age_bins = get_age_bins(ages_of_riders)
+    groupby_age_df = groupby_age_df = ages_of_riders.groupby([age_bins])[['user_id']].count().sort_values(by = 'user_id', ascending = False).reset_index()
+    ages_of_riders_fig = px.pie(groupby_age_df, values='user_id', names='age', title=f'Age of riders', color_discrete_sequence=px.colors.sequential.Greens_r)
     return ages_of_riders_fig
 
 def get_age_bins(df: pd.DataFrame):
     """
     Segments customer age column into age bins
     """
-    return pd.cut(df['customer_age'], bins = [0,18,26,39,65,np.inf], labels=["Kids (< 18)","Young Adults (18-25)", "Adults (25-40)", "Middle Age (40-65)", "Seniors (65+)"])
+    return pd.cut(df['age'], bins = [0,18,26,39,65,np.inf], labels=["Kids (< 18)","Young Adults (18-25)", "Adults (25-40)", "Middle Age (40-65)", "Seniors (65+)"])
 
 def get_average_ride_stats_fig(con: sqlalchemy.engine.Connection) :
     """
@@ -142,7 +137,7 @@ def get_average_ride_stats_fig(con: sqlalchemy.engine.Connection) :
     GROUP BY user_id;
     """
     riders_average_power_and_heart_rate = pd.read_sql_query(query, con)
-    riders_average_power_and_heart_rate_fig = px.bar(riders_average_power_and_heart_rate, x= 'average_power_kj', y='average_heart_rate_bpm', 
+    riders_average_power_and_heart_rate_fig = px.scatter(riders_average_power_and_heart_rate, x= 'average_power_kj', y='average_heart_rate_bpm', 
         color_discrete_sequence=px.colors.sequential.Greens_r, 
         labels=dict(average_power_kj ="Average power (KJ)", average_heart_rate_bpm="Average heart rate (bpm"),
         title = 'Average power vs Average heart rate for each rider'

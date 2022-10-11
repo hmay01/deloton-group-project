@@ -8,7 +8,7 @@ warnings.simplefilter(action='ignore', category=SyntaxWarning)
 from production_helpers import SQLConnection as sql
 from production_helpers import Transform as t
 
-if __name__ == "__main__":
+def handler(event, context):
     staging_schema = 'yusra_stories_staging'
     production_schema = 'yusra_stories_production'
     logs_table = 'logs'

@@ -15,8 +15,6 @@ from sqlalchemy import create_engine
 from xhtml2pdf import pisa
 
 
-
-
 class Graph():
     load_dotenv()
 

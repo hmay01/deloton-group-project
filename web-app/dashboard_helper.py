@@ -2,6 +2,7 @@ from os import getenv
 from typing import List, Optional
 
 import confluent_kafka
+from datetime import date
 import json
 import pandas as pd
 import numpy as np
@@ -79,6 +80,21 @@ class Kafka_helpers():
         else:
             return None
     
+    @staticmethod
+    def get_age(dob:date) -> int:
+        """
+        Calculates a person's age based on their date of birth
+        """
+        today = date.today()
+        try: 
+            birthday = dob.replace(year=today.year)
+        except ValueError: # raised when birth date is February 29 and the current year is not a leap year
+            birthday = dob.replace(year=today.year, month=dob.month+1, day=1)
+        if birthday > today:
+            return today.year - dob.year - 1
+        else:
+            return today.year - dob.year
+            
     @staticmethod   
     def reg_extract_ride_duration(log: str):
         '''Parse ride_duration from given log text'''
@@ -90,9 +106,22 @@ class Kafka_helpers():
             return None
     
     @staticmethod   
-    def parse_sys_log(log, info):
+    def parse_name_log(log):
         if ' [SYSTEM] data' in log:
-            return Kafka_helpers.get_value_from_user_dict(log,info)
+            return Kafka_helpers.get_value_from_user_dict(log,"name")
+
+    @staticmethod   
+    def parse_age_log(log):
+        if ' [SYSTEM] data' in log:
+            dob_log_string = Kafka_helpers.get_value_from_user_dict(log, 'date_of_birth')
+            dob_timestamp = pd.Timestamp(dob_log_string, unit='ms')
+            return Kafka_helpers.get_age(dob_timestamp)
+
+    @staticmethod   
+    def parse_gender_log(log):
+        if ' [SYSTEM] data' in log:
+            return Kafka_helpers.get_value_from_user_dict(log,"gender")   
+    
 
     @staticmethod  
     def parse_ride_log(log):

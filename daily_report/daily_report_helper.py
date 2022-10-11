@@ -1,5 +1,4 @@
 import os
-from base64 import b64encode
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -10,7 +9,6 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import sqlalchemy
-from botocore.client import Config
 from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 from sqlalchemy import create_engine

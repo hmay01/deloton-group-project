@@ -8,6 +8,8 @@ import pandas as pd
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 
+import boto3
+
 
 class SQLConnection():
     load_dotenv()
@@ -202,9 +204,11 @@ class Kafka():
                         else:
                             print('Ride successfully ended. Appending logs to the logs table.')
                             #make a mini df and append to logs
-                            series_of_ride_id = [ride_id] * len(ride_logs)
+                            number_of_rows = len(ride_logs)
+                            series_of_ride_id = [ride_id] * number_of_rows
                             latest_ride_df = pd.DataFrame({'ride_id': series_of_ride_id, 'log':ride_logs})
                             sql.write_df_to_table(latest_ride_df, sql_schema, logs_table, 'append')
+                            Notify.production_sns_trigger(number_of_rows)
                             ride_logs.clear()
 
                     # #mid ride logs
@@ -221,3 +225,22 @@ class Kafka():
     @staticmethod
     def is_initial_lost_ride(ride_id: int) -> bool:
         return True if ride_id == 0 else False
+
+
+class Notify():
+
+    @staticmethod
+    def production_sns_trigger(number_of_rows):
+        topic_arn = 'arn:aws:sns:eu-west-2:605126261673:y_stories_stage'
+        message = {"Number of rows": number_of_rows}
+        sns_client = boto3.client(
+            'sns', 
+            aws_access_key_id=getenv('ACCESS_KEY_ID'), 
+            aws_secret_access_key=getenv('SECRET_ACCESS_KEY'),
+            region_name = 'eu-west-2')
+        sns_client.publish(
+            TopicArn=topic_arn, 
+            Message=json.dumps({'default': json.dumps(message)}), 
+            MessageStructure='json')
+        print(f'SNS message sent to trigger production lambda.')
+

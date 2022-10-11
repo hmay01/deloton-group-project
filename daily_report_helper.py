@@ -35,7 +35,11 @@ BODY_HTML = """<html>
     <br>Best wishes,
     <br>Yusra stories team
     </html>"""
+
+BODY_TEXT = 'Good Afternoon,\nAttached is the Daily report pdf.\nBest wishes,\nYusra stories team'
 ATTACHMENT = 'report.pdf'
+CHARSET = "utf-8"
+
 
 def create_connection() -> sqlalchemy.engine.Connection:
     """
@@ -216,7 +220,7 @@ def convert_html_to_pdf(source_html: str, output_filename: str) -> int:
 
 
 def create_multipart_message(
-        sender: str, recipient: str, subject: str, html: str=None, attachment: str=None)\
+        sender: str, recipient: str, subject: str, html: str=None, text: str=None, attachment: str=None)\
         -> MIMEMultipart:
     """
     Creates a MIME multipart message object.
@@ -228,15 +232,20 @@ def create_multipart_message(
     msg['From'] = sender
     msg['To'] = recipient
 
-    if html:
-        part = MIMEText(html, 'html')
-        msg.attach(part)
+    msg_body = MIMEMultipart('alternative')
 
-    with open(attachment, 'rb') as f:
-        part = MIMEApplication(f.read())
-        part.add_header('Content-Disposition', 'attachment', filename=os.path.basename(attachment))
-        msg.attach(part)
+    textpart = MIMEText(text.encode(CHARSET), 'plain', CHARSET)
+    htmlpart = MIMEText(html.encode(CHARSET), 'html', CHARSET)
 
+    msg_body.attach(textpart)
+    msg_body.attach(htmlpart)
+
+    att = MIMEApplication(open(attachment, 'rb').read())
+
+    att.add_header('Content-Disposition','attachment',filename=os.path.basename(attachment))
+
+    msg.attach(msg_body)
+    msg.attach(att)
     return msg
 
 
@@ -245,7 +254,7 @@ def send_mail() -> dict:
     Send email to recipients. Sends one mail to all recipients.
     The sender needs to be a verified email in SES.
     """
-    msg = create_multipart_message(SENDER, RECIPIENT, SUBJECT, BODY_HTML, ATTACHMENT)
+    msg = create_multipart_message(SENDER, RECIPIENT, SUBJECT, BODY_HTML, BODY_TEXT, ATTACHMENT)
     ses_client = boto3.client('ses', 
     aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
     aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
@@ -258,7 +267,8 @@ def send_mail() -> dict:
 
 def send_report():
     """
-    Sends daily report email to recipient
+    Function call to execute send mail function in a try block
+    Sends daily report email to recipient fixed recipient
     """
     try:
         response = send_mail()

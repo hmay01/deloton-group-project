@@ -26,10 +26,17 @@ db_name = getenv('DB_NAME')
 group_user = getenv('GROUP_USER')
 group_user_pass = getenv('GROUP_USER_PASS')
 
-SENDER = "trainee.john.andemeskel@sigmalabs.co.uk"
-AWS_REGION = "us-east-1"
-SUBJECT = "Daily Report"
-CHARSET = "UTF-8"
+sender_ = 'trainee.john.andemeskel@sigmalabs.co.uk'
+recipients_ = ['trainee.yusra.anshoor@sigmalabs.co.uk']
+title_ = 'Deloton Exercise Bikes Daily Report'
+text_ = 'Good Afternoon,\nAttached is the Daily report pdf.\nBest wishes,\nYusra stories team'
+body_ = """<html>
+    <br>Good Afternoon,
+    <br>Attached is the Daily report pdf. 
+    <br>Best wishes,
+    <br> Yusra stories team
+    </html>"""
+attachments_ = ['report.pdf']
 
 def create_connection() -> sqlalchemy.engine.Connection:
     """
@@ -161,70 +168,70 @@ def save_graph_as_png(fig, fig_name: str):
     """
     fig.write_image(f"images/{fig_name}.png")
 
-def save_to_bucket(file_name:str):
-    """
-    Saves image to s3 bucket for a given string filename
-    """
-    s3 = boto3.resource("s3",
-    aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
-    aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
-    region_name=os.environ['AWS_DEFAULT_REGION'],
-    )
-    data = open(f'images/{file_name}.png', 'rb')
-    s3.Bucket("yusra-stories-report-images").put_object(Key= f'{file_name}.png', Body=data)
-    print(f"save {file_name} to bucket")
+# def save_to_bucket(file_name:str):
+#     """
+#     Saves image to s3 bucket for a given string filename
+#     """
+#     s3 = boto3.resource("s3",
+#     aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+#     aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+#     region_name=os.environ['AWS_DEFAULT_REGION'],
+#     )
+#     data = open(f'images/{file_name}.png', 'rb')
+#     s3.Bucket("yusra-stories-report-images").put_object(Key= f'{file_name}.png', Body=data)
+#     print(f"save {file_name} to bucket")
 
-def save_all_images_to_bucket(file_names:list):
-    """
-    For each filename in a list of given filenames, saves the associated
-    image to an s3 bucket
-    """
-    for file_name in file_names:
-        save_to_bucket(file_name)
+# def save_all_images_to_bucket(file_names:list):
+#     """
+#     For each filename in a list of given filenames, saves the associated
+#     image to an s3 bucket
+#     """
+#     for file_name in file_names:
+#         save_to_bucket(file_name)
 
-def generating_url_for_image(bucket_name, file_name):
-    """
-    Generates a presigned url for an object in a bucket for a given bucket 
-    and file name. This allow access to the object in the private bucket
-    """
-    url = boto3.client('s3',
-    config=Config(signature_version='s3v4'),
-    aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
-    aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
-    region_name='eu-west-2',
-    ).generate_presigned_url(
-        ClientMethod='get_object', 
-        Params={'Bucket': bucket_name, 'Key': f'{file_name}.png'},
-        ExpiresIn=604800)
-    return url
+# def generating_url_for_image(bucket_name, file_name):
+#     """
+#     Generates a presigned url for an object in a bucket for a given bucket 
+#     and file name. This allow access to the object in the private bucket
+#     """
+#     url = boto3.client('s3',
+#     config=Config(signature_version='s3v4'),
+#     aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+#     aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+#     region_name='eu-west-2',
+#     ).generate_presigned_url(
+#         ClientMethod='get_object', 
+#         Params={'Bucket': bucket_name, 'Key': f'{file_name}.png'},
+#         ExpiresIn=604800)
+#     return url
 
-def get_all_image_urls(file_names):
-    """
-    For each filename in a list of given filenames, generates a presigned url
-    """
-    urls = [generating_url_for_image('yusra-stories-report-images', file_name) for file_name in file_names]
-    return urls
+# def get_all_image_urls(file_names):
+#     """
+#     For each filename in a list of given filenames, generates a presigned url
+#     """
+#     urls = [generating_url_for_image('yusra-stories-report-images', file_name) for file_name in file_names]
+#     return urls
 
-def graph_block_template(url: str) -> str:
+def graph_block_template(file_name: str) -> str:
     """
     Creates an html string for an image insert for a given figure name
     """
     graph_block =  (''
             
-                f'<center><img style="height: 400px;" src="{url}"></center>'
+                f'<center><img style="height: 400px;" src="images/{file_name}.png"></center>'
                 + '<hr>'
            )                   
    
     return graph_block
 
-def get_report(urls: list, number_of_rides : np.int64) -> str:
+def get_report(graph_names: list, number_of_rides : np.int64) -> str:
     """
     Returns a html string of the report layout containing the graph 
     image inserts for the input list of graph names 
     """
     graphs_layout = ''
-    for url in urls:
-        graphs_layout += graph_block_template(url)
+    for graph_name in graph_names:
+        graphs_layout += graph_block_template(graph_name)
     report_layout = (
         '<h1 align="center"> Deloton Exercise Bikes Daily Report</h1>'
         + '<hr>'
@@ -273,17 +280,6 @@ def convert_html_to_pdf(source_html: str, output_filename: str) -> int:
 #             )
 #     return response
 
-# def send_report(recipient, BODY_HTML):
-#     """
-#     Sends daily report email to recipient
-#     """
-#     try:
-#         response = create_email(recipient, BODY_HTML)
-#     except ClientError as e:
-#         print(e.response['Error']['Message'])
-#     else:
-#         print("Email sent! Message ID:"),
-#         print(response['MessageId'])
 
 
 def create_multipart_message(
@@ -343,3 +339,15 @@ def send_mail(
         Destinations=recipients,
         RawMessage={'Data': msg.as_string()}
     )
+
+def send_report():
+    """
+    Sends daily report email to recipient
+    """
+    try:
+        response = send_mail(sender_, recipients_, title_, text_, body_, attachments_)
+    except ClientError as e:
+        print(e.response['Error']['Message'])
+    else:
+        print("Email sent! Message ID:"),
+        print(response['MessageId'])

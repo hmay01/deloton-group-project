@@ -26,17 +26,16 @@ db_name = getenv('DB_NAME')
 group_user = getenv('GROUP_USER')
 group_user_pass = getenv('GROUP_USER_PASS')
 
-sender_ = 'trainee.john.andemeskel@sigmalabs.co.uk'
-recipients_ = ['trainee.yusra.anshoor@sigmalabs.co.uk']
-title_ = 'Deloton Exercise Bikes Daily Report'
-text_ = 'Good Afternoon,\nAttached is the Daily report pdf.\nBest wishes,\nYusra stories team'
-body_ = """<html>
+SENDER = 'trainee.john.andemeskel@sigmalabs.co.uk'
+RECIPIENT = 'trainee.yusra.anshoor@sigmalabs.co.uk'
+SUBJECT = 'Deloton Exercise Bikes Daily Report'
+BODY_HTML = """<html>
     <br>Good Afternoon,
     <br>Attached is the Daily report pdf. 
     <br>Best wishes,
-    <br> Yusra stories team
+    <br>Yusra stories team
     </html>"""
-attachments_ = ['report.pdf']
+ATTACHMENT = 'report.pdf'
 
 def create_connection() -> sqlalchemy.engine.Connection:
     """
@@ -283,60 +282,43 @@ def convert_html_to_pdf(source_html: str, output_filename: str) -> int:
 
 
 def create_multipart_message(
-        sender: str, recipients: list, title: str, text: str=None, html: str=None, attachments: list=None)\
+        sender: str, recipient: str, subject: str, html: str=None, attachment: str=None)\
         -> MIMEMultipart:
     """
     Creates a MIME multipart message object.
-    Uses only the Python `email` standard library.
-    Emails, both sender and recipients, can be just the email string or have the format 'The Name <the_email@host.com>'.
-
-    :param sender: The sender.
-    :param recipients: List of recipients. Needs to be a list, even if only one recipient.
-    :param title: The title of the email.
-    :param text: The text version of the email body (optional).
-    :param html: The html version of the email body (optional).
-    :param attachments: List of files to attach in the email.
-    :return: A `MIMEMultipart` to be used to send the email.
+    Emails, both sender and recipients
     """
-    multipart_content_subtype = 'alternative' if text and html else 'mixed'
+    multipart_content_subtype = 'alternative' if html else 'mixed'
     msg = MIMEMultipart(multipart_content_subtype)
-    msg['Subject'] = title
+    msg['Subject'] = subject
     msg['From'] = sender
-    msg['To'] = ', '.join(recipients)
+    msg['To'] = recipient
 
-    # Record the MIME types of both parts - text/plain and text/html.
-    # According to RFC 2046, the last part of a multipart message, in this case the HTML message, is best and preferred.
-    if text:
-        part = MIMEText(text, 'plain')
-        msg.attach(part)
     if html:
         part = MIMEText(html, 'html')
         msg.attach(part)
 
-    # Add attachments
-    for attachment in attachments or []:
-        with open(attachment, 'rb') as f:
-            part = MIMEApplication(f.read())
-            part.add_header('Content-Disposition', 'attachment', filename=os.path.basename(attachment))
-            msg.attach(part)
+    with open(attachment, 'rb') as f:
+        part = MIMEApplication(f.read())
+        part.add_header('Content-Disposition', 'attachment', filename=os.path.basename(attachment))
+        msg.attach(part)
 
     return msg
 
 
-def send_mail(
-        sender: str, recipients: list, title: str, text: str=None, html: str=None, attachments: list=None) -> dict:
+def send_mail() -> dict:
     """
     Send email to recipients. Sends one mail to all recipients.
     The sender needs to be a verified email in SES.
     """
-    msg = create_multipart_message(sender, recipients, title, text, html, attachments)
+    msg = create_multipart_message(SENDER, RECIPIENT, SUBJECT, BODY_HTML, ATTACHMENT)
     ses_client = boto3.client('ses', 
     aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
     aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
     region_name= 'us-east-1',)
     return ses_client.send_raw_email(
-        Source=sender,
-        Destinations=recipients,
+        Source=SENDER,
+        Destinations=[RECIPIENT],
         RawMessage={'Data': msg.as_string()}
     )
 
@@ -345,7 +327,7 @@ def send_report():
     Sends daily report email to recipient
     """
     try:
-        response = send_mail(sender_, recipients_, title_, text_, body_, attachments_)
+        response = send_mail()
     except ClientError as e:
         print(e.response['Error']['Message'])
     else:

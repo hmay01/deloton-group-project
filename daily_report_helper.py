@@ -12,7 +12,6 @@ from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
-
 load_dotenv()
 
 db_host = getenv('DB_HOST')

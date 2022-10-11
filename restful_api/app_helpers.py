@@ -56,7 +56,8 @@ def get_rides_at_specific_date(date:str) -> json:
     )
     SELECT * 
     FROM rides
-    WHERE start_date = '{formatted_date}';
+    WHERE start_date = '{formatted_date}'
+    ORDER BY ride_id;
     """)
     rides_at_specified_date_list = format_rides_as_list(rides_at_specified_date_result)
     rides_at_specified_date_json = jsonify(rides_at_specified_date_list)

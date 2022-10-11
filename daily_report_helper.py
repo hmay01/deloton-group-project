@@ -121,6 +121,12 @@ def get_age_of_riders_fig(con: sqlalchemy.engine.Connection) :
     ages_of_riders_fig = px.pie(ages_of_riders, values='number_of_riders', names='age', title=f'Age of riders', color_discrete_sequence=px.colors.sequential.Greens_r)
     return ages_of_riders_fig
 
+def get_age_bins(df: pd.DataFrame):
+    """
+    Segments customer age column into age bins
+    """
+    return pd.cut(df['customer_age'], bins = [0,18,26,39,65,np.inf], labels=["Kids (< 18)","Young Adults (18-25)", "Adults (25-40)", "Middle Age (40-65)", "Seniors (65+)"])
+
 def get_average_ride_stats_fig(con: sqlalchemy.engine.Connection) :
     """
     Given an SQLAlchemy connection

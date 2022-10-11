@@ -215,29 +215,6 @@ def convert_html_to_pdf(source_html: str, output_filename: str) -> int:
     return pisa_status.err
 
 
-# def create_email(recipient, BODY_HTML):
-#     """
-#     Builds the email to be sent as daily report
-#     """
-#     client = boto3.client('ses',region_name=AWS_REGION)
-#     response = client.send_email(
-#                 Destination=
-#                 {'ToAddresses': [recipient]},
-#                 Message={
-#                     'Body': {
-#                         'Html': {'Charset': CHARSET,'Data': BODY_HTML}
-                        
-#                     },
-#                     'Subject': {
-#                         'Charset': CHARSET, 'Data': SUBJECT
-#                         }
-#                     },
-#                 Source=SENDER,
-#             )
-#     return response
-
-
-
 def create_multipart_message(
         sender: str, recipient: str, subject: str, html: str=None, attachment: str=None)\
         -> MIMEMultipart:

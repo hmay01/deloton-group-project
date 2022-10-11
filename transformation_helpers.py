@@ -1,48 +1,102 @@
 import json
-import pandas as pd
 import re
+from datetime import date, timedelta
+import pandas as pd
 
-def init_df(data:list) -> pd.DataFrame:
-    """ 
-    Makes the initial df which has a row for each log
-    """
-    return pd.DataFrame(columns=['log'], data=data)
 
-def format_df(df:pd.DataFrame) -> pd.DataFrame:
+def get_joined_formatted_df(logs_df:pd.DataFrame) -> pd.DataFrame:
     """ 
-    Adds all the necessary columns to the df
+    Adds all the necessary columns to the latest_logs df
     """
+
     # general columns
-    df = add_is_new_ride_column(df)
-    df = add_is_info_column(df)
-    df = add_is_system_column(df)
-    df = add_date_column(df)
-    # ride columns (INFO LOGS)
-    df = add_heart_rate_column(df)
-    df = add_resistance_column(df)
-    df = add_rpm_column(df)
-    df = add_power_column(df)
+    logs_df = add_is_new_ride_column(logs_df)
+    logs_df = add_is_info_column(logs_df)
+    logs_df = add_is_system_column(logs_df)
+    logs_df = add_datetime_column(logs_df)
     # user columns (SYSTEM LOGS)
-    df = add_user_id_column(df)
-    df = add_name_column(df)
-    df = add_gender_column(df)
-    df = add_address_column(df)
-    df = add_date_of_birth_column(df)
-    df = add_email_address_column(df)
-    df = add_height_column(df)
-    df = add_weight_column(df)
-    df = add_account_create_date_column(df)
-    df = add_bike_serial_column(df)
-    df = add_original_source_column(df)
+    logs_df = add_user_id_column(logs_df)
+    logs_df = add_name_column(logs_df)
+    logs_df = add_gender_column(logs_df)
+    logs_df = add_date_of_birth_column(logs_df)
+    logs_df['date_of_birth'] = logs_df['date_of_birth'].apply(lambda x: pd.Timestamp(x, unit='ms'))
+    logs_df = add_age_column(logs_df)
+    logs_df = add_height_column(logs_df)
+    logs_df = add_weight_column(logs_df)
+    logs_df = add_address_column(logs_df) 
+    logs_df = add_email_address_column(logs_df)
+    logs_df = add_account_create_date_column(logs_df)
+    logs_df['account_created'] = logs_df['account_created'].apply(lambda x: pd.Timestamp(x, unit='ms'))
+    logs_df = add_bike_serial_column(logs_df)
+    logs_df = add_original_source_column(logs_df)
+    # ride columns (INFO LOGS)
+    logs_df = add_ride_duration_column(logs_df)
+    logs_df = add_heart_rate_column(logs_df)
+    logs_df = add_resistance_column(logs_df)
+    logs_df = add_rpm_column(logs_df)
+    logs_df = add_power_column(logs_df)
+    return logs_df
 
-    return df
+def get_users_df(formatted_df:pd.DataFrame) -> pd.DataFrame:
+    """ 
+    Takes in the newly formatted (joined) df for latest logs and returns only those columns relevant for user table
+    """
+    system_logs = formatted_df[(formatted_df['is_system']) == True]
+    user_columns = ['user_id', 'name', 'gender', 'date_of_birth', 'age', 'height_cm', 'weight_kg', 'address', 'email_address', 'account_created', 'bike_serial', 'original_source']
+    user_df = system_logs[user_columns]
+    return user_df
 
-def reg_extract_date(log: str):
-    '''Parse date from given log text'''
+
+def get_staging_rides_df(formatted_df):
+    """ 
+    Takes in the formatted df for the latest logs and adds columns which will be used for the rides df
+    """
+    staging_ride_columns =  ['ride_id', 'user_id', 'time', 'duration_secs', 'heart_rate', 'resistance', 'power', 'rpm']
+    staging_rides_df = formatted_df[staging_ride_columns]
+    staging_rides_df = add_total_duration_column(staging_rides_df)
+    staging_rides_df = add_total_power_column(staging_rides_df)
+    staging_rides_df = add_max_heart_rate_column(staging_rides_df)
+    staging_rides_df = add_min_heart_rate_column(staging_rides_df)
+    staging_rides_df = add_avg_heart_rate_column(staging_rides_df)
+    staging_rides_df = add_avg_resistance_column(staging_rides_df)
+    staging_rides_df = add_avg_rpm_column(staging_rides_df)
+    staging_rides_df = add_start_time_column(staging_rides_df)
+    staging_rides_df = add_end_time_column(staging_rides_df)
+    return staging_rides_df
+
+def get_final_rides_df(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
+    """ 
+    Takes in the staging rides df for the latest ride and returns only those columns relevant for final rides table
+    """
+    final_ride_columns = ['ride_id', 'user_id', 'start_time', 'end_time', 'total_duration', 'max_heart_rate_bpm', 'min_heart_rate_bpm', 'avg_heart_rate_bpm', 'avg_resistance', 'avg_rpm', 'total_power_kilojoules']
+    rides_df = staging_rides_df[final_ride_columns]
+    rides_df = rides_df.drop_duplicates()
+    rides_df = rides_df.dropna()
+    print(f'RIDE INFO GATHERED for ride_id: {staging_rides_df["ride_id"][0]}')
+    return rides_df
+
+
+def get_age(dob:date) -> int:
+    """
+    Calculates a person's age based on their date of birth
+    """
+    today = date.today()
+    try: 
+        birthday = dob.replace(year=today.year)
+    except ValueError: # raised when birth date is February 29 and the current year is not a leap year
+        birthday = dob.replace(year=today.year, month=dob.month+1, day=1)
+    if birthday > today:
+        return today.year - dob.year - 1
+    else:
+        return today.year - dob.year
+
+
+def reg_extract_log_datetime(log: str):
+    '''Parse log datetime from given log text'''
     search = re.search('[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{6}', log)
     if search is not None: 
-        date = search.group(0)
-        return date
+        datetime = search.group(0)
+        return datetime
     else:
         return None
 
@@ -95,8 +149,10 @@ def add_is_new_ride_column(df:pd.DataFrame) -> pd.DataFrame:
     """ 
     To indicate if a log marks the beginning of a new ride
     """
-    df['is_new_ride'] = df.log.str.contains('new ride')
+    df['is_new_ride'] = df['log'].str.contains('new ride')
     return df
+
+
 
 def add_is_info_column(df:pd.DataFrame) -> pd.DataFrame:
     """ 
@@ -112,26 +168,44 @@ def add_is_system_column(df:pd.DataFrame) -> pd.DataFrame:
     df['is_system'] = df.log.str.contains('SYSTEM')
     return df
 
-def add_date_column(df:pd.DataFrame) -> pd.DataFrame:
+def add_datetime_column(df:pd.DataFrame) -> pd.DataFrame:
     """ 
     Holds the datetime of when the log was published
     """
-    df['date'] = df.log.apply(reg_extract_date)
-    df['date'] = pd.to_datetime(df.date)
+    df['time'] = df['log'].apply(reg_extract_log_datetime)
+    df['time'] = pd.to_datetime(df['time'])
     return df
+
+def add_age_column(user_df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the age of each user
+    """
+    user_df['age'] = user_df['date_of_birth'].apply(get_age)
+    return user_df
+
+
+def heart_rate_zeros_to_nans(hr):
+    if hr is 0:
+        return pd.NA
+    else:
+        return hr
+
 
 def add_heart_rate_column(df:pd.DataFrame) -> pd.DataFrame:
     """ 
     Shows heart rate stat for the relevant INFO logs
     """
     df['heart_rate'] = df.log.apply(reg_extract_heart_rate)
+    df['heart_rate'] = df['heart_rate'].astype('Int64')
+    df['heart_rate'] = df['heart_rate'].apply(heart_rate_zeros_to_nans)
     return df
+
 
 def add_ride_duration_column(df:pd.DataFrame) -> pd.DataFrame:
     """ 
     Shows ride duration stat for the relevant INFO logs
     """
-    df['ride_duration_secs'] = df['log'].apply(reg_extract_ride_duration)
+    df['duration_secs'] = df['log'].apply(reg_extract_ride_duration)
     return df
 
 def add_resistance_column(df:pd.DataFrame) -> pd.DataFrame:
@@ -176,12 +250,15 @@ def get_value_from_user_dict(log:str, value:str) -> pd.Series:
     else:
         return None
 
+
 def add_user_id_column(df:pd.DataFrame) -> pd.DataFrame:
     """ 
     Shows user id for the relevant SYSTEM logs
     """
     df['user_id'] = df['log'].apply(get_value_from_user_dict, args=['user_id'])
+    df['user_id'] = df['user_id'].astype('Int64')
     return df
+
 
 def add_name_column(df:pd.DataFrame) -> pd.DataFrame:
     """ 
@@ -236,7 +313,7 @@ def add_account_create_date_column(df:pd.DataFrame) -> pd.DataFrame:
     """ 
     Shows account create date for the relevant SYSTEM logs
     """
-    df['account_create_date'] = df['log'].apply(get_value_from_user_dict, args=['account_create_date'])
+    df['account_created'] = df['log'].apply(get_value_from_user_dict, args=['account_create_date'])
     return df
 
 def add_bike_serial_column(df:pd.DataFrame) -> pd.DataFrame:
@@ -252,4 +329,97 @@ def add_original_source_column(df:pd.DataFrame) -> pd.DataFrame:
     """
     df['original_source'] = df['log'].apply(get_value_from_user_dict, args=['original_source'])
     return df
+
+
+def get_age(dob:date) -> int:
+    """Calculates a users age based on their date of birth"""
+    today = date.today()
+    try: 
+        birthday = dob.replace(year=today.year)
+    except ValueError: # raised when birth date is February 29 and the current year is not a leap year
+        birthday = dob.replace(year=today.year, month=dob.month+1, day=1)
+    if birthday > today:
+        return today.year - dob.year - 1
+    else:
+        return today.year - dob.year
+
+
+def add_total_duration_column(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the total duration column to the staging_rides_df df
+    """
+    staging_rides_df['total_duration'] = staging_rides_df.groupby(by=['ride_id'], dropna=False)['duration_secs'].transform('max')
+    staging_rides_df['total_duration'] = staging_rides_df['total_duration'].apply(lambda x: str(timedelta(seconds=x)))
+    return staging_rides_df
+
+
+
+def add_total_power_column(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the total power kilojoules column to the staging_rides_df df
+    """
+    staging_rides_df['total_power_kilojoules'] = staging_rides_df.groupby('ride_id', dropna=False)['power'].transform('sum')
+    staging_rides_df['total_power_kilojoules'] = staging_rides_df['total_power_kilojoules'].apply(lambda x: round(x/1000, 2))
+    return staging_rides_df
+
+
+def add_max_heart_rate_column(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the max heart rate column to the staging_rides_df df
+    """
+    staging_rides_df['max_heart_rate_bpm'] = staging_rides_df.groupby('ride_id', dropna=False)['heart_rate'].transform('max')
+    staging_rides_df['max_heart_rate_bpm'] = staging_rides_df['max_heart_rate_bpm'].apply(lambda x: int(x))
+    return staging_rides_df
+
+
+def add_min_heart_rate_column(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the min heart rate column to the staging_rides_df df
+    """
+    staging_rides_df['min_heart_rate_bpm'] = staging_rides_df.groupby('ride_id', dropna=False)['heart_rate'].transform('min')
+    staging_rides_df['min_heart_rate_bpm'] = staging_rides_df['min_heart_rate_bpm'].apply(lambda x: int(x))
+    return staging_rides_df
+
+def add_avg_heart_rate_column(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the average heart rate column to the staging_rides_df df
+    """
+    staging_rides_df['avg_heart_rate_bpm'] = staging_rides_df.groupby('ride_id', dropna=False)['heart_rate'].transform('mean')
+    staging_rides_df['avg_heart_rate_bpm'] = staging_rides_df['avg_heart_rate_bpm'].apply(lambda x: int(x))
+    return staging_rides_df
+
+
+def add_avg_resistance_column(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the average resistance setting column to the staging_rides_df df
+    """
+    staging_rides_df['avg_resistance'] = staging_rides_df.groupby('ride_id', dropna=False)['resistance'].transform('mean')
+    staging_rides_df['avg_resistance'] = staging_rides_df['avg_resistance'].apply(lambda x: int(x))
+    return staging_rides_df
+
+
+def add_avg_rpm_column(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the average rotations per minute column to the staging_rides_df df
+    """
+    staging_rides_df['avg_rpm'] = staging_rides_df.groupby('ride_id', dropna=False)['rpm'].transform('mean')
+    staging_rides_df['avg_rpm'] = staging_rides_df['avg_rpm'].apply(lambda x: int(x))
+    return staging_rides_df
+
+
+def add_start_time_column(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the start time column to the staging_rides_df df
+    """
+    staging_rides_df['start_time'] = staging_rides_df.groupby('ride_id', dropna=False)['time'].transform('min')
+    staging_rides_df['start_time'] = staging_rides_df['start_time'].apply(lambda x: x.round(freq='S'))
+    return staging_rides_df
+
+def add_end_time_column(staging_rides_df:pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the end time column to the staging_rides_df df
+    """
+    staging_rides_df['end_time'] = staging_rides_df.groupby('ride_id', dropna=False)['time'].transform('max')
+    staging_rides_df['end_time'] = staging_rides_df['end_time'].apply(lambda x: x.round(freq='S'))
+    return staging_rides_df
 

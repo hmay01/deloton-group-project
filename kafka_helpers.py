@@ -1,7 +1,16 @@
-import confluent_kafka
+import json
 import uuid
 from os import getenv
-import json
+
+import confluent_kafka
+import pandas as pd
+from dotenv import load_dotenv
+
+import hr_alert_helpers as alert
+from transformation_helpers import (get_age, get_value_from_user_dict,
+                                    reg_extract_heart_rate)
+
+load_dotenv()
 
 KAFKA_TOPIC_NAME = getenv('KAFKA_TOPIC')
 KAFKA_SERVER = getenv('KAFKA_SERVER')
@@ -15,7 +24,7 @@ def connect_to_kafka_consumer() -> confluent_kafka.Consumer:
 
     c = confluent_kafka.Consumer({
         'bootstrap.servers': KAFKA_SERVER,
-        'group.id': f'deloton-group-three' +str(uuid.uuid1()),
+        'group.id': f'deloton-group-yusra-stories' +str(uuid.uuid1()),
         'security.protocol': 'SASL_SSL',
         'sasl.mechanisms': 'PLAIN',
         'sasl.username': KAFKA_USERNAME,
@@ -23,7 +32,7 @@ def connect_to_kafka_consumer() -> confluent_kafka.Consumer:
         'session.timeout.ms': 6000,
         'heartbeat.interval.ms': 1000,
         'fetch.wait.max.ms': 6000,
-        'auto.offset.reset': 'earliest',
+        'auto.offset.reset': 'latest',
         'enable.auto.commit': 'false',
         'max.poll.interval.ms': '86400000',
         'topic.metadata.refresh.interval.ms': "-1",
@@ -33,25 +42,94 @@ def connect_to_kafka_consumer() -> confluent_kafka.Consumer:
     return c
 
 
-def stream_kafka_topic(c:confluent_kafka.Consumer, topic: str, number_of_logs: int) -> list:
+def stream_ingestion_kafka_topic(c:confluent_kafka.Consumer, topic: str, sql, sql_schema, logs_table) -> list:
     """
-    Streams a predefined number of logs using the provided kafka consumer and topic
-    Returns a list of the logs
+    Constantly streams logs using the provided kafka consumer and topic
+
+    Appends each log to the ride_logs list
+        - When a ride comes to an end (signalled by "beginning of main" log), appends the logs for that ride to the SQL logs table
+        - When a new ride begins, it appends the new logs to the newly cleared ride_logs list
+
+    Process is repeated
+
     """
     c.subscribe([topic])
-    data = []
+    print(f'Kafka consumer subscribed to topic: {topic}. Logs will be cached from beginning of next ride.')
+
+    ride_logs = []
+    ride_id = 0
     try:
-        while len(data) <= number_of_logs:
+        while True:
             log = c.poll(1.0)
             if log == None:
-                data.append('No message available')
+                pass
             else: 
-                key = log.key().decode('utf-8')
                 value = json.loads(log.value().decode('utf-8'))
-                topic = log.topic()
-                data.append(value['log'])
-        return data
+                value_log = value['log'] 
+
+                if 'new ride' in value_log:
+                    ride_id += 1
+                    print(f'New ride with id: {ride_id}. Collecting logs...')
+                    ride_logs.append(value_log)
+                    
+                # end of ride log
+                elif 'beginning of main' in value_log:
+                    if is_initial_lost_ride(ride_id):
+                        pass
+                    else:
+                        print('Ride successfully ended. Appending logs to the logs table.')
+                        #make a mini df and append to logs
+                        series_of_ride_id = [ride_id] * len(ride_logs)
+                        latest_ride_df = pd.DataFrame({'ride_id': series_of_ride_id, 'log':ride_logs})
+                        sql.write_df_to_table(latest_ride_df, sql_schema, logs_table, 'append')
+                        ride_logs.clear()
+
+                # #mid ride logs
+                else:
+                    if is_initial_lost_ride(ride_id):
+                        pass
+                    else:
+                        ride_logs.append(value_log)
     except KeyboardInterrupt:
         pass
     finally:
         c.close()
+
+
+def stream_hr_kafka_topic(c:confluent_kafka.Consumer, topic: str) -> list:
+    """
+    Constantly streams logs using the provided kafka consumer and topic
+    to directly query logs for heart rate alerts
+    """
+    c.subscribe([topic])
+    print(f'Kafka consumer subscribed to topic: {topic}. Logs will be cached from beginning of next ride.')
+
+    age = None
+    try:
+        while True:
+            log = c.poll(1.0)
+            if log == None:
+                pass
+            else: 
+                value = json.loads(log.value().decode('utf-8'))
+                value_log = value['log']
+
+                if ' [SYSTEM] data' in value_log:
+                    dob_log_string = get_value_from_user_dict(value_log, 'date_of_birth')
+                    dob_timestamp = pd.Timestamp(dob_log_string, unit='ms')
+                    age = get_age(dob_timestamp)
+                    recipient = get_value_from_user_dict('email_address')
+
+                if age != None:
+                    heart_rate = reg_extract_heart_rate(value_log)
+                    if (heart_rate != None) and (alert.is_abnormal(heart_rate, age)):
+                        alert.send_alert(recipient)
+                
+    except KeyboardInterrupt:
+        pass
+    finally:
+        c.close()
+
+
+def is_initial_lost_ride(ride_id: int) -> bool:
+    return True if ride_id == 0 else False

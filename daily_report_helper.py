@@ -111,16 +111,17 @@ def get_age_of_riders_fig(con: sqlalchemy.engine.Connection) :
         ORDER BY age ASC;
     """
     ages_of_riders = pd.read_sql_query(query, con)
-    age_bins = get_age_bins(ages_of_riders)
-    groupby_age_df = groupby_age_df = ages_of_riders.groupby([age_bins])[['user_id']].count().sort_values(by = 'user_id', ascending = False).reset_index()
+    groupby_age_df = group_df_by_age(ages_of_riders)
     ages_of_riders_fig = px.pie(groupby_age_df, values='user_id', names='age', title=f'Age of riders', color_discrete_sequence=px.colors.sequential.Greens_r)
     return ages_of_riders_fig
 
-def get_age_bins(df: pd.DataFrame):
+def group_df_by_age(df: pd.DataFrame):
     """
-    Segments customer age column into age bins
+    Segments age column into age bins and returns a dataframe grouped by age
     """
-    return pd.cut(df['age'], bins = [0,18,26,39,65,np.inf], labels=["Kids (< 18)","Young Adults (18-25)", "Adults (25-40)", "Middle Age (40-65)", "Seniors (65+)"])
+    age_bins =  pd.cut(df['age'], bins = [0,18,26,39,65,np.inf], labels=["Kids (< 18)","Young Adults (18-25)", "Adults (25-40)", "Middle Age (40-65)", "Seniors (65+)"])
+    groupby_age_df = groupby_age_df = df.groupby([age_bins])[['user_id']].count().sort_values(by = 'user_id', ascending = False).reset_index()
+    return groupby_age_df
 
 def get_average_ride_stats_fig(con: sqlalchemy.engine.Connection) :
     """

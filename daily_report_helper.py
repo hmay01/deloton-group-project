@@ -1,6 +1,7 @@
 import os
 from base64 import b64encode
 from os import getenv
+from xhtml2pdf import pisa
 
 import boto3
 import numpy as np
@@ -233,6 +234,21 @@ def get_report(urls: list, number_of_rides : np.int64) -> str:
         
     )
     return report_layout
+
+def convert_html_to_pdf(source_html: str, output_filename: str) -> int:
+    """
+    Converts the input source html to a pdf file saved as the 
+    string output filename
+    """
+    result_file = open(output_filename, "w+b")
+
+    pisa_status = pisa.CreatePDF(
+            source_html,           
+            dest=result_file)           
+
+    result_file.close()           
+
+    return pisa_status.err
 
 
 def create_email(recipient, BODY_HTML):

@@ -26,99 +26,99 @@ class Functionality():
 
     db = SQLAlchemy(app)
 
-@staticmethod
-def get_todays_rides() -> json:
-    """
-    Returns a JSON object of all rides on the current date
-    """
-    current_date = Utilities.get_current_date()
-    todays_rides_result = Functionality.db.session.execute(f"""
-    WITH rides AS (  
-    SELECT *, CAST(start_time AS DATE) AS start_date
-    FROM yusra_stories_production.rides
-    )
-    SELECT * 
-    FROM rides
-    WHERE start_date = '{current_date}'
-    ORDER BY ride_id;
-    """)
-    todays_rides_list = Format.format_rides_as_list(todays_rides_result)
-    todays_rides_json = jsonify(todays_rides_list)
-    return todays_rides_json
-
-@staticmethod
-def get_rides_at_specific_date(date:str) -> json:
-    """
-    For a given date string input, 
-    Returns a JSON object of the corresponding rides 
-    """
-    formatted_date = Format.format_date(date)
-    rides_at_specified_date_result = Functionality.db.session.execute(f"""
-    WITH rides AS (  
-    SELECT *, CAST(start_time AS DATE) AS start_date
-    FROM yusra_stories_production.rides
-    )
-    SELECT * 
-    FROM rides
-    WHERE start_date = '{formatted_date}'
-    ORDER BY ride_id;
-    """)
-    rides_at_specified_date_list = Format.format_rides_as_list(rides_at_specified_date_result)
-    rides_at_specified_date_json = jsonify(rides_at_specified_date_list)
-    return rides_at_specified_date_json
-
-@staticmethod
-def get_ride_by_id(id:int) -> json:
-    """
-    Returns a json object of a ride for a given ride_id
-    """
-    ride_by_id_result = Functionality.db.session.execute(f'SELECT * FROM yusra_stories_production.rides WHERE ride_id = {id};')
-    ride_by_id_list = Format.format_rides_as_list(ride_by_id_result)
-    ride_by_id_json = jsonify(ride_by_id_list)
-    return  ride_by_id_json
-
-@staticmethod
-def delete_by_id(id:int) -> str:
-    """
-    Deletes a ride with a specific ID
-    """
-    Functionality.db.session.execute(f'DELETE FROM yusra_stories_production.rides WHERE ride_id = {id};')
-    Functionality.db.session.commit()
-  
-    return 'Ride Deleted!', 200
-
-@staticmethod
-def get_rider_info_by_id(user_id:int) -> json:
-    """
-    Returns a json object of rider information (name, gender, age ect) and 
-    aggregate ride info (avg. heart rate, number of rides) for a given user_id
-    """
-    rider_info_result = Functionality.db.session.execute(f"""
-    WITH aggregate_rides AS (
-        SELECT "user_id", COUNT("ride_id") AS "number_of_rides" , ROUND(AVG("avg_heart_rate_bpm")) AS "avg_heart_rate_bpm"
+    @staticmethod
+    def get_todays_rides() -> json:
+        """
+        Returns a JSON object of all rides on the current date
+        """
+        current_date = Utilities.get_current_date()
+        todays_rides_result = Functionality.db.session.execute(f"""
+        WITH rides AS (  
+        SELECT *, CAST(start_time AS DATE) AS start_date
         FROM yusra_stories_production.rides
-        WHERE "user_id" = {user_id}
-        GROUP BY "user_id"
-    )
-    SELECT  "user_id", "name", "gender", "age", "height_cm", "weight_kg", 
-    "address", "email_address", "number_of_rides", "avg_heart_rate_bpm"
-    FROM yusra_stories_production.users
-    JOIN aggregate_rides
-    USING ("user_id");
-    """)
-    rider_info_list = Format.format_rider_info_as_list(rider_info_result)
-    rider_info_json = jsonify(rider_info_list)
-    return rider_info_json
+        )
+        SELECT * 
+        FROM rides
+        WHERE start_date = '{current_date}'
+        ORDER BY ride_id;
+        """)
+        todays_rides_list = Format.format_rides_as_list(todays_rides_result)
+        todays_rides_json = jsonify(todays_rides_list)
+        return todays_rides_json
 
-def get_all_rides_for_rider(user_id:int) -> json:
-    """
-    Returns a json object of aggregate ride (avg. heart rate, number of rides) info fo a
-    given rider, given a user_id
-    """
-    rides_for_rider_results = Functionality.db.session.execute(f'SELECT * FROM yusra_stories_production.rides WHERE "user_id" = {user_id};')
-    rides_for_rider_list = Format.format_rides_as_list(rides_for_rider_results)
-    rides_for_rider_json = jsonify(rides_for_rider_list)
-    return rides_for_rider_json
+    @staticmethod
+    def get_rides_at_specific_date(date:str) -> json:
+        """
+        For a given date string input, 
+        Returns a JSON object of the corresponding rides 
+        """
+        formatted_date = Format.format_date(date)
+        rides_at_specified_date_result = Functionality.db.session.execute(f"""
+        WITH rides AS (  
+        SELECT *, CAST(start_time AS DATE) AS start_date
+        FROM yusra_stories_production.rides
+        )
+        SELECT * 
+        FROM rides
+        WHERE start_date = '{formatted_date}'
+        ORDER BY ride_id;
+        """)
+        rides_at_specified_date_list = Format.format_rides_as_list(rides_at_specified_date_result)
+        rides_at_specified_date_json = jsonify(rides_at_specified_date_list)
+        return rides_at_specified_date_json
+
+    @staticmethod
+    def get_ride_by_id(id:int) -> json:
+        """
+        Returns a json object of a ride for a given ride_id
+        """
+        ride_by_id_result = Functionality.db.session.execute(f'SELECT * FROM yusra_stories_production.rides WHERE ride_id = {id};')
+        ride_by_id_list = Format.format_rides_as_list(ride_by_id_result)
+        ride_by_id_json = jsonify(ride_by_id_list)
+        return  ride_by_id_json
+
+    @staticmethod
+    def delete_by_id(id:int) -> str:
+        """
+        Deletes a ride with a specific ID
+        """
+        Functionality.db.session.execute(f'DELETE FROM yusra_stories_production.rides WHERE ride_id = {id};')
+        Functionality.db.session.commit()
+    
+        return 'Ride Deleted!', 200
+
+    @staticmethod
+    def get_rider_info_by_id(user_id:int) -> json:
+        """
+        Returns a json object of rider information (name, gender, age ect) and 
+        aggregate ride info (avg. heart rate, number of rides) for a given user_id
+        """
+        rider_info_result = Functionality.db.session.execute(f"""
+        WITH aggregate_rides AS (
+            SELECT "user_id", COUNT("ride_id") AS "number_of_rides" , ROUND(AVG("avg_heart_rate_bpm")) AS "avg_heart_rate_bpm"
+            FROM yusra_stories_production.rides
+            WHERE "user_id" = {user_id}
+            GROUP BY "user_id"
+        )
+        SELECT  "user_id", "name", "gender", "age", "height_cm", "weight_kg", 
+        "address", "email_address", "number_of_rides", "avg_heart_rate_bpm"
+        FROM yusra_stories_production.users
+        JOIN aggregate_rides
+        USING ("user_id");
+        """)
+        rider_info_list = Format.format_rider_info_as_list(rider_info_result)
+        rider_info_json = jsonify(rider_info_list)
+        return rider_info_json
+
+    def get_all_rides_for_rider(user_id:int) -> json:
+        """
+        Returns a json object of aggregate ride (avg. heart rate, number of rides) info fo a
+        given rider, given a user_id
+        """
+        rides_for_rider_results = Functionality.db.session.execute(f'SELECT * FROM yusra_stories_production.rides WHERE "user_id" = {user_id};')
+        rides_for_rider_list = Format.format_rides_as_list(rides_for_rider_results)
+        rides_for_rider_json = jsonify(rides_for_rider_list)
+        return rides_for_rider_json
 
 
 class Format():

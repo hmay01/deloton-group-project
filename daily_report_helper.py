@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import sqlalchemy
+from botocore.client import Config
 from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
@@ -179,26 +180,42 @@ def save_all_images_to_bucket(file_names:list):
     for file_name in file_names:
         save_to_bucket(file_name)
 
-def graph_block_template(fig_name: str) -> str:
+def generating_url_for_image(bucket_name, file_name):
+    url = boto3.client('s3',
+    config=Config(signature_version='s3v4'),
+    aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+    aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+    region_name='eu-west-2',
+    ).generate_presigned_url(
+        ClientMethod='get_object', 
+        Params={'Bucket': bucket_name, 'Key': f'{file_name}.png'},
+        ExpiresIn=604800)
+    return url
+
+def get_all_image_urls(file_names):
+    urls = [generating_url_for_image('yusra-stories-report-images', file_name) for file_name in file_names]
+    return urls
+
+def graph_block_template(url: str) -> str:
     """
     Creates an html string for an image insert for a given figure name
     """
     graph_block =  (''
             
-                f'<img style="height: 400px;" src="https://yusra-stories-report-images.s3.eu-west-2.amazonaws.com/{fig_name}.png">'
+                f'<img style="height: 400px;" src="{url}">'
                 + '<hr>'
            )                   
    
     return graph_block
 
-def get_report(graph_names: list, number_of_rides : np.int64) -> str:
+def get_report(urls: list, number_of_rides : np.int64) -> str:
     """
     Returns a html string of the report layout containing the graph 
     image inserts for the input list of graph names 
     """
     graphs_layout = ''
-    for graph_name in graph_names:
-        graphs_layout += graph_block_template(graph_name)
+    for url in urls:
+        graphs_layout += graph_block_template(url)
     report_layout = (
         '<h1>Deloton Exercise Bikes Daily Report</h1>'
         + '<hr>'

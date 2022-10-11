@@ -25,7 +25,6 @@ group_user_pass = getenv('GROUP_USER_PASS')
 SENDER = "trainee.john.andemeskel@sigmalabs.co.uk"
 AWS_REGION = "us-east-1"
 SUBJECT = "Daily Report"
-BODY_TEXT = (" Your heart rate was picked up at an abnormal rhythm, please seek medical attention! ")         
 CHARSET = "UTF-8"
 
 def create_connection() -> sqlalchemy.engine.Connection:
@@ -242,8 +241,8 @@ def create_email(recipient, BODY_HTML):
                 {'ToAddresses': [recipient]},
                 Message={
                     'Body': {
-                        'Html': {'Charset': CHARSET,'Data': BODY_HTML},
-                        'Text': {'Charset': CHARSET, 'Data': BODY_TEXT}
+                        'Html': {'Charset': CHARSET,'Data': BODY_HTML}
+                        
                     },
                     'Subject': {
                         'Charset': CHARSET, 'Data': SUBJECT

@@ -1,27 +1,19 @@
 import dash_bootstrap_components as dbc
 import datetime
-import plotly.express as px
-from dash import dcc, html, register_page, Input, Output, callback
+import json
+from dash import dcc, html, register_page, Output, Input, callback
 
 from db import ride_frequency, age_distribution, total_power_output ,avg_power_output 
-
+from dashboard_helper import Kafka_helpers as kh
 
 now = datetime.datetime.now().hour
 
 register_page(__name__)
 
-# Current ride = dbc.Card(
-#     dbc.CardBody(
-#         [
-#             html.H4(children='Current rider'),
-#             html.P(children=f'Name: {current_rider["name"]}'),
-#             html.P(children=f'Gender: {current_rider["gender"]}'),
-#             html.P(children=f'Age: {current_rider["age"]}'),
-#             html.P(children=f'Average heart rate (bpm): {current_rider["avg_hrt"]}'),
-#             html.P(children=f'Ride duration: {current_rider["duration"]}')
-#         ]
-#     )
-# )
+
+consumer = kh.connect_to_kafka_consumer()
+consumer.subscribe([kh.KAFKA_TOPIC_NAME])
+
 
 recent_ride_stats = dbc.Card(
     dbc.CardBody(
@@ -37,11 +29,65 @@ recent_ride_stats = dbc.Card(
 layout = html.Div(
     children = 
     [
-        # insight,
+        html.Div(id="current_ride"),
         dcc.Graph(id='graph-output-1',figure=ride_frequency),
         dcc.Graph(id='graph-output-2',figure=age_distribution), 
-        recent_ride_stats 
+        recent_ride_stats,
+        dcc.Interval(id='interval', interval = 1000, n_intervals=0)
 ])
 
+previous_log = {}
 
+@callback(
+    Output("current_ride", "children"),
+    Input("interval", "n_intervals")
+)
 
+def update_live_Dashboard(interval):
+    value = consumer.poll(0)
+
+    try:
+        value_log = json.loads(value.value().decode('utf-8'))
+        log = value_log['log'] 
+
+        ride_log = kh.parse_ride_log(log)
+        telemetry_log = kh.parse_telemetry_log(log)
+
+        if ride_log != None:
+            previous_log['ride'] = ride_log
+        
+        if telemetry_log != None:
+            previous_log['telemetry'] = telemetry_log
+
+        #############################################  
+        name_log = kh.parse_sys_log(log,"name")
+        gender_log = kh.parse_sys_log(log,"gender")
+        age_log = kh.parse_sys_log(log,"age")
+        
+        if name_log != None:
+            previous_log['name'] = name_log
+        
+        if gender_log != None:
+            previous_log['gender'] = gender_log
+        
+        if age_log != None:
+            previous_log['age'] = age_log
+        #############################################  
+        
+        current_ride = (
+            dbc.Card(
+                dbc.CardBody(
+                    [
+                        html.H4(children='Current rider'),
+                        html.P(children=f'Name: {kh.parse_sys_log(log,"name")}'),
+                        html.P(children=f'Gender: {kh.parse_sys_log(log,"gender")}'),
+                        html.P(children=f'Age: {kh.parse_sys_log(log,"age")}'),
+                        html.P(children=f'Ride duration: {previous_log["ride"]}'),
+                        html.P(children=f'Average heart rate (bpm): {previous_log["telemetry"]}')
+                    ])))
+
+        return current_ride
+    except (AttributeError, KeyError):
+        pass
+
+    

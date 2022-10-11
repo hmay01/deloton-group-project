@@ -167,49 +167,6 @@ def save_graph_as_png(fig, fig_name: str):
     """
     fig.write_image(f"images/{fig_name}.png")
 
-# def save_to_bucket(file_name:str):
-#     """
-#     Saves image to s3 bucket for a given string filename
-#     """
-#     s3 = boto3.resource("s3",
-#     aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
-#     aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
-#     region_name=os.environ['AWS_DEFAULT_REGION'],
-#     )
-#     data = open(f'images/{file_name}.png', 'rb')
-#     s3.Bucket("yusra-stories-report-images").put_object(Key= f'{file_name}.png', Body=data)
-#     print(f"save {file_name} to bucket")
-
-# def save_all_images_to_bucket(file_names:list):
-#     """
-#     For each filename in a list of given filenames, saves the associated
-#     image to an s3 bucket
-#     """
-#     for file_name in file_names:
-#         save_to_bucket(file_name)
-
-# def generating_url_for_image(bucket_name, file_name):
-#     """
-#     Generates a presigned url for an object in a bucket for a given bucket 
-#     and file name. This allow access to the object in the private bucket
-#     """
-#     url = boto3.client('s3',
-#     config=Config(signature_version='s3v4'),
-#     aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
-#     aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
-#     region_name='eu-west-2',
-#     ).generate_presigned_url(
-#         ClientMethod='get_object', 
-#         Params={'Bucket': bucket_name, 'Key': f'{file_name}.png'},
-#         ExpiresIn=604800)
-#     return url
-
-# def get_all_image_urls(file_names):
-#     """
-#     For each filename in a list of given filenames, generates a presigned url
-#     """
-#     urls = [generating_url_for_image('yusra-stories-report-images', file_name) for file_name in file_names]
-#     return urls
 
 def graph_block_template(file_name: str) -> str:
     """

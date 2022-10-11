@@ -149,6 +149,9 @@ class Graph():
         graph_names = ['riders_gender_split_fig', 'ages_of_riders_fig', 'riders_average_power_and_heart_rate_fig']
         return graph_names
 
+
+
+
 class Convert():
 
     @staticmethod
@@ -216,6 +219,8 @@ class Convert():
         result_file.close()           
 
         return pisa_status.err
+
+
 
 class Email():
     SENDER = 'trainee.john.andemeskel@sigmalabs.co.uk'

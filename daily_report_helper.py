@@ -11,7 +11,7 @@ from botocore.client import Config
 from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
-from xhtml2pdf import pisa
+
 
 load_dotenv()
 

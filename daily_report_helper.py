@@ -1,7 +1,9 @@
 import os
 from base64 import b64encode
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from os import getenv
-from xhtml2pdf import pisa
 
 import boto3
 import numpy as np
@@ -12,6 +14,7 @@ from botocore.client import Config
 from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
+from xhtml2pdf import pisa
 
 load_dotenv()
 
@@ -223,14 +226,12 @@ def get_report(urls: list, number_of_rides : np.int64) -> str:
     for url in urls:
         graphs_layout += graph_block_template(url)
     report_layout = (
-        '<p>"Good afternoon, "</p>'
-        + '<p> "Below is the '
-        +'<h1 align="center"> Deloton Exercise Bikes Daily Report</h1>'
+        '<h1 align="center"> Deloton Exercise Bikes Daily Report</h1>'
         + '<hr>'
         + f'<h1 align="center"> {number_of_rides} Rides completed today </h1>'
         + '<hr>'
         + graphs_layout
-        + '<hr>'
+    
         
     )
     return report_layout
@@ -251,35 +252,94 @@ def convert_html_to_pdf(source_html: str, output_filename: str) -> int:
     return pisa_status.err
 
 
-def create_email(recipient, BODY_HTML):
-    """
-    Builds the email to be sent as daily report
-    """
-    client = boto3.client('ses',region_name=AWS_REGION)
-    response = client.send_email(
-                Destination=
-                {'ToAddresses': [recipient]},
-                Message={
-                    'Body': {
-                        'Html': {'Charset': CHARSET,'Data': BODY_HTML}
+# def create_email(recipient, BODY_HTML):
+#     """
+#     Builds the email to be sent as daily report
+#     """
+#     client = boto3.client('ses',region_name=AWS_REGION)
+#     response = client.send_email(
+#                 Destination=
+#                 {'ToAddresses': [recipient]},
+#                 Message={
+#                     'Body': {
+#                         'Html': {'Charset': CHARSET,'Data': BODY_HTML}
                         
-                    },
-                    'Subject': {
-                        'Charset': CHARSET, 'Data': SUBJECT
-                        }
-                    },
-                Source=SENDER,
-            )
-    return response
+#                     },
+#                     'Subject': {
+#                         'Charset': CHARSET, 'Data': SUBJECT
+#                         }
+#                     },
+#                 Source=SENDER,
+#             )
+#     return response
 
-def send_report(recipient, BODY_HTML):
+# def send_report(recipient, BODY_HTML):
+#     """
+#     Sends daily report email to recipient
+#     """
+#     try:
+#         response = create_email(recipient, BODY_HTML)
+#     except ClientError as e:
+#         print(e.response['Error']['Message'])
+#     else:
+#         print("Email sent! Message ID:"),
+#         print(response['MessageId'])
+
+
+def create_multipart_message(
+        sender: str, recipients: list, title: str, text: str=None, html: str=None, attachments: list=None)\
+        -> MIMEMultipart:
     """
-    Sends daily report email to recipient
+    Creates a MIME multipart message object.
+    Uses only the Python `email` standard library.
+    Emails, both sender and recipients, can be just the email string or have the format 'The Name <the_email@host.com>'.
+
+    :param sender: The sender.
+    :param recipients: List of recipients. Needs to be a list, even if only one recipient.
+    :param title: The title of the email.
+    :param text: The text version of the email body (optional).
+    :param html: The html version of the email body (optional).
+    :param attachments: List of files to attach in the email.
+    :return: A `MIMEMultipart` to be used to send the email.
     """
-    try:
-        response = create_email(recipient, BODY_HTML)
-    except ClientError as e:
-        print(e.response['Error']['Message'])
-    else:
-        print("Email sent! Message ID:"),
-        print(response['MessageId'])
+    multipart_content_subtype = 'alternative' if text and html else 'mixed'
+    msg = MIMEMultipart(multipart_content_subtype)
+    msg['Subject'] = title
+    msg['From'] = sender
+    msg['To'] = ', '.join(recipients)
+
+    # Record the MIME types of both parts - text/plain and text/html.
+    # According to RFC 2046, the last part of a multipart message, in this case the HTML message, is best and preferred.
+    if text:
+        part = MIMEText(text, 'plain')
+        msg.attach(part)
+    if html:
+        part = MIMEText(html, 'html')
+        msg.attach(part)
+
+    # Add attachments
+    for attachment in attachments or []:
+        with open(attachment, 'rb') as f:
+            part = MIMEApplication(f.read())
+            part.add_header('Content-Disposition', 'attachment', filename=os.path.basename(attachment))
+            msg.attach(part)
+
+    return msg
+
+
+def send_mail(
+        sender: str, recipients: list, title: str, text: str=None, html: str=None, attachments: list=None) -> dict:
+    """
+    Send email to recipients. Sends one mail to all recipients.
+    The sender needs to be a verified email in SES.
+    """
+    msg = create_multipart_message(sender, recipients, title, text, html, attachments)
+    ses_client = boto3.client('ses', 
+    aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+    aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+    region_name= 'us-east-1',)
+    return ses_client.send_raw_email(
+        Source=sender,
+        Destinations=recipients,
+        RawMessage={'Data': msg.as_string()}
+    )

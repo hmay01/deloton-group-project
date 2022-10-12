@@ -14,8 +14,6 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from xhtml2pdf import pisa
 
-
-
 class Graph():
 
     load_dotenv()
@@ -25,9 +23,6 @@ class Graph():
     db_user = getenv('DB_USER')
     db_password = getenv('DB_PASSWORD')
     db_name = getenv('DB_NAME')
-
-    print(db_user)
-    print(db_password)
 
     @staticmethod
     def create_connection() -> sqlalchemy.engine.Connection:

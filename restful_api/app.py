@@ -1,7 +1,6 @@
 
 from app_helpers import Functionality as F
-from app_helpers import json, request
-from flask import Flask
+from flask import Flask, json, request
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)

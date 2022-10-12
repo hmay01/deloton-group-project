@@ -60,4 +60,4 @@ def get_all_rides_for_given_user(user_id:int) -> json:
     return F.get_all_rides_for_rider(user_id, db)
 
 if __name__ == "__main__":
-    app.run(debug=True,host='0.0.0.0',port=5000)
+    app.run(host="0.0.0.0", debug=True, port=5000)

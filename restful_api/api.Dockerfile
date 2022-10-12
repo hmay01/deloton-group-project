@@ -1,4 +1,4 @@
-FROM python:3.10
+FROM --platform=linux/x86-64 python
 COPY app.py app_helpers.py /./
 COPY requirements.txt  .
 RUN  pip install -r requirements.txt 

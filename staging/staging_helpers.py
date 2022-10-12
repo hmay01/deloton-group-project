@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 
 import boto3
-
+load_dotenv()
 
 class SQLConnection():
     load_dotenv()
@@ -66,12 +66,13 @@ class SQLConnection():
             print(f'New dataframe with {df.shape[0]} rows added to {schema}')
     
     @staticmethod
-    def list_production_tables() -> list:
+    def list_tables(schema) -> list:
         """ 
-        Queries the information schema for tables in the production schema and returns existing tables in list
+        Queries the information schema for tables in the given schema and returns existing tables in list
         """
-        tables_info = SQLConnection.read_query("select * from information_schema.tables where table_schema = 'yusra_stories_production'")
+        tables_info = SQLConnection.read_query(f"select * from information_schema.tables where table_schema = '{schema}'")
         return list(tables_info.table_name)
+    
  
     @staticmethod
     def drop_table(schema:str, table_name:str) -> None:
@@ -131,7 +132,17 @@ class SQLConnection():
         else:
             return False
 
+    @staticmethod
+    def is_empty_table(schema, table):
+        df = SQLConnection.read_query(f'select * from {schema}.{table}')
+        if df.shape[0] == 0:
+            return True
+        else:
+            return False
+
+
 class Kafka():
+    load_dotenv()
     topic_name = getenv('KAFKA_TOPIC')
     server = getenv('KAFKA_SERVER')
     username = getenv('KAFKA_USERNAME')
@@ -180,7 +191,16 @@ class Kafka():
         print(f'Kafka consumer subscribed to topic: {topic}. Logs will be cached from beginning of next ride.')
 
         ride_logs = []
-        ride_id = 0
+
+
+        if SQLConnection.is_empty_table(sql_schema,logs_table):
+            lost_ride_id = 0
+        else:
+            lost_ride_id = Kafka.get_previous_ride_id(logs_table)
+        
+        #until a new ride begins...
+        ride_id = lost_ride_id
+        
         try:
             while True:
                 log = c.poll(1.0)
@@ -197,7 +217,7 @@ class Kafka():
                         
                     # end of ride log
                     elif 'beginning of main' in value_log:
-                        if Kafka.is_initial_lost_ride(ride_id):
+                        if ride_id == lost_ride_id:
                             pass
                         else:
                             print('Ride successfully ended. Appending logs to the logs table.')
@@ -211,7 +231,8 @@ class Kafka():
 
                     # #mid ride logs
                     else:
-                        if Kafka.is_initial_lost_ride(ride_id):
+                        # if its the lost ride...
+                        if ride_id == lost_ride_id:
                             pass
                         else:
                             ride_logs.append(value_log)
@@ -220,9 +241,18 @@ class Kafka():
         finally:
             c.close()
 
+    
     @staticmethod
-    def is_initial_lost_ride(ride_id: int) -> bool:
-        return True if ride_id == 0 else False
+    def get_previous_ride_id(logs_table:str) -> int:
+        """ 
+        Queries the logs table for the max ride id and then returns max + 1
+        """
+        latest_ride_ids_in_table = SQLConnection.read_query(f'''
+            select "ride_id" 
+            from yusra_stories_staging.{logs_table}
+            where "ride_id" = (SELECT MAX("ride_id") FROM yusra_stories_staging.{logs_table})''')
+        latest_ride_id = latest_ride_ids_in_table.loc[0]['ride_id']
+        return latest_ride_id
 
 
 class Notify():

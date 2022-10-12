@@ -15,8 +15,7 @@ class Functionality():
     db_user = getenv('DB_USER')
     db_password = getenv('DB_PASSWORD')
     db_name = getenv('DB_NAME')
-    group_user = getenv('GROUP_USER')
-    group_user_pass = getenv('GROUP_USER_PASS')
+   
 
 
     @staticmethod

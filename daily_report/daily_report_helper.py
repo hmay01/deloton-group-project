@@ -32,7 +32,7 @@ class Graph():
         Creates an SQLAlchemy connection for a specified set of user,
         password, hostname, port and database_name
         """
-        engine = create_engine(f'postgresql://{Graph.db_user}:{Graph.db_password}@{Graph.db_host}:{Graph.db_port}/{Graph.db_name}')
+        engine = create_engine(f'postgresql://{Graph.group_user}:{Graph.group_user_pass}@{Graph.db_host}:{Graph.db_port}/{Graph.db_name}')
         con = engine.connect()
         return con
 

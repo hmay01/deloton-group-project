@@ -1,7 +1,0 @@
-pyarrow==8.0.0
-pandas
-confluent-kafka
-python-dotenv
-postgres
-SQLAlchemy
-boto3

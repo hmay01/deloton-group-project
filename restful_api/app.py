@@ -1,7 +1,14 @@
 
-from app_helpers import Functionality, json, request
+from app_helpers import Functionality as F, json, request
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 
-app = Functionality.app 
+app = Flask(__name__)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{F.db_user}:{F.db_password}@{F.db_host}:{F.db_port}/{F.db_name}'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
 
 @app.route('/', methods=['GET'])
 def index() -> str:

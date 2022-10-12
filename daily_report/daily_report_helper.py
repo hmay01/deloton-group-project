@@ -26,9 +26,6 @@ class Graph():
     db_password = getenv('DB_PASSWORD')
     db_name = getenv('DB_NAME')
 
-    print(db_user)
-    print(db_password)
-
     @staticmethod
     def create_connection() -> sqlalchemy.engine.Connection:
         """

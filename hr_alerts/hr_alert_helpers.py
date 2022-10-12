@@ -17,28 +17,45 @@ class Email():
     aws_region = "us-east-1"
     subject = "Important Message: Heart rate alert"
     body_text = (" Your heart rate was picked up at an abnormal rhythm, please seek medical attention! ")
-    body_html = """
-    <html>
-    <head></head>
-    <body>
-        <h1> Your heart rate was picked up at an abnormal rhythm, please seek medical attention! </h1>
-    </body>
-    </html>  
-    """             
+           
     charset = "UTF-8"
 
     @staticmethod
-    def create_email(recipient):
+    def build_html_body(age, heart_rate,name):
+
+        lower_boundary = 40
+        upper_boundary = 220 - age
+
+        body_html = f"""
+        <html>
+        <head></head>
+        <body align = "center">
+            <img src="https://user-images.githubusercontent.com/80219582/195360654-0544dd66-63fb-4547-bc22-c2d3bc8bdddc.png" alt="Deloton Logo" width = 50% height = 50%>
+            <h1>Warning!</h1>
+            <p> {name} You may need to seek medical attention </p>
+            <p> Your heart rate was recorded as {heart_rate} BPM </p> 
+            <p> This is out of range for what is regarded as a healthy heart rate for your age & weight; </p>
+            <p> Healthy BPM range: {upper_boundary} - {lower_boundary} </p>
+        </body>
+        </html>  
+        """ 
+        return body_html     
+
+    @staticmethod
+    def create_email(recipient, age, heart_rate,name):
         """
         Builds the email to be sent as a heart-rate alert
         """
+
+        body_html = Email.build_html_body(age, heart_rate, name)
+
         client = boto3.client('ses',region_name=Email.aws_region)
         response = client.send_email(
                     Destination=
                     {'ToAddresses': [recipient]},
                     Message={
                         'Body': {
-                            'Html': {'Charset': Email.charset,'Data': Email.body_text},
+                            'Html': {'Charset': Email.charset,'Data': body_html},
                             'Text': {'Charset': Email.charset, 'Data': Email.body_text}
                         },
                         'Subject': {
@@ -50,12 +67,12 @@ class Email():
         return response
 
     @staticmethod
-    def send_alert(recipient):
+    def send_alert(recipient, age, heart_rate,name ):
         """
         Fires off the email to the rider if abnormal heart rate occurs
         """
         try:
-            response = Email.create_email(recipient)
+            response = Email.create_email(recipient, age, heart_rate,name)
         except ClientError as e:
             print(e.response['Error']['Message'])
         else:
@@ -79,7 +96,7 @@ class HeartRate():
         Compare current heart rate to boundaries, to establish abnormal heart rate
         """
         lower_boundary,upper_boundary = HeartRate.heart_rate_boundaries(age)
-        if heart_rate > upper_boundary or heart_rate < lower_boundary:
+        if heart_rate > upper_boundary or (heart_rate < lower_boundary and heart_rate > 0):
             return True
         else:
             return False
@@ -128,7 +145,7 @@ class Kafka():
         c.subscribe([topic])
         print(f'Kafka consumer subscribed to topic: {topic}. Logs will be cached from beginning of next ride.')
 
-        age = None
+        age,recipient,name = None, None, None
         try:
             while True:
                 log = c.poll(1.0)
@@ -143,17 +160,19 @@ class Kafka():
                         dob_timestamp = pd.Timestamp(dob_log_string, unit='ms')
                         age = Transformations.get_age(dob_timestamp)
                         recipient = Transformations.get_value_from_user_dict('email_address')
+                        name = Transformations.get_value_from_user_dict('name')
                  
-
+                    
                     if age != None:
                         heart_rate = Transformations.reg_extract_heart_rate(value_log)
                         if (heart_rate != None) and (HeartRate.is_abnormal(heart_rate, age)):
-                            Email.send_alert(recipient)
+                            Email.send_alert(recipient, age, heart_rate, name)
                     
         except KeyboardInterrupt:
             pass
         finally:
             c.close()
+    
 
 class Transformations():
 

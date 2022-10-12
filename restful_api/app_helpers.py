@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 from flask import jsonify
 
 
-
 class Functionality():
 
     load_dotenv()

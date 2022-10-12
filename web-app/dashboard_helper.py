@@ -10,7 +10,7 @@ import re
 import uuid
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 
 
 
@@ -42,7 +42,7 @@ class Kafka_helpers():
             'enable.auto.commit': 'false',
             'max.poll.interval.ms': '86400000',
             'topic.metadata.refresh.interval.ms': "-1",
-            "client.id": 'id-002-005',
+            "client.id": 'id-002-006',
         })
 
         return c
@@ -94,10 +94,10 @@ class Kafka_helpers():
             return today.year - dob.year - 1
         else:
             return today.year - dob.year
-            
+
     @staticmethod   
-    def reg_extract_ride_duration(log: str):
-        '''Parse ride_duration from given log text'''
+    def reg_extract_ride_duration(log: str) -> int:
+        '''Parse ride duration '''
         search = re.search('(duration = )([0-9]*)', log)
         if search is not None: 
             ride_duration = search.group(2)
@@ -106,26 +106,29 @@ class Kafka_helpers():
             return None
     
     @staticmethod   
-    def parse_name_log(log):
+    def parse_name_log(log: str) -> str:
+        '''Parse user name from given log text'''
         if ' [SYSTEM] data' in log:
             return Kafka_helpers.get_value_from_user_dict(log,"name")
 
     @staticmethod   
-    def parse_age_log(log):
+    def parse_age_log(log:str) -> int:
+        '''Parse user age from given log text'''
         if ' [SYSTEM] data' in log:
             dob_log_string = Kafka_helpers.get_value_from_user_dict(log, 'date_of_birth')
             dob_timestamp = pd.Timestamp(dob_log_string, unit='ms')
             return Kafka_helpers.get_age(dob_timestamp)
 
     @staticmethod   
-    def parse_gender_log(log):
+    def parse_gender_log(log:str) -> str:
+        '''Parse user gender from given log text'''
         if ' [SYSTEM] data' in log:
             return Kafka_helpers.get_value_from_user_dict(log,"gender")   
     
 
     @staticmethod  
-    def parse_ride_log(log):
-
+    def parse_ride_log(log:str) -> int:
+        '''Parse user ride duration from given log text'''
         if  '[INFO]: Ride' in log:
             return Kafka_helpers.reg_extract_ride_duration(log)
 
@@ -133,6 +136,25 @@ class Kafka_helpers():
     def parse_telemetry_log(log):
         if  '[INFO]: Telemetry' in log:
             return Kafka_helpers.reg_extract_heart_rate(log)
+
+    @staticmethod  
+    def parse_new_ride(log):
+        if  '--------- beginning of main' in log:
+            return True
+    
+    @staticmethod  
+    def parse_new_log(log):
+        if  '--------- beginning of a new ride' in log:
+            return True
+    
+    @staticmethod
+    def parse_logs(log):
+        ride_log = Kafka_helpers.parse_ride_log(log)
+        telemetry_log = Kafka_helpers.parse_telemetry_log(log)
+        name_log = Kafka_helpers.parse_name_log(log)
+        gender_log = Kafka_helpers.parse_gender_log(log)
+        age_log = Kafka_helpers.parse_age_log(log)
+        return ride_log, telemetry_log, name_log, gender_log,age_log
 
 class transform_data():
     

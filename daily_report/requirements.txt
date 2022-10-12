@@ -1,0 +1,11 @@
+pyarrow
+pandas
+SQLAlchemy
+psycopg2-binary
+numpy
+plotly
+python-dotenv
+kaleido
+xhtml2pdf
+botocore
+boto3

@@ -17,8 +17,7 @@ class SQLConnection():
     db_user = getenv('DB_USER')
     db_password = getenv('DB_PASSWORD')
     db_name = getenv('DB_NAME')
-    group_user = getenv('GROUP_USER')
-    group_user_pass = getenv('GROUP_USER_PASS')
+  
 
     engine = create_engine(f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}', pool_pre_ping=True)
 
@@ -32,12 +31,12 @@ class SQLConnection():
             for schema_name in schema_list:
                 con.execute(f'DROP SCHEMA IF EXISTS {schema_name} CASCADE')
 
-            con.execute(f"""CREATE USER {SQLConnection.group_user} WITH ENCRYPTED PASSWORD '{SQLConnection.group_user_pass}'""")
+            con.execute(f"""CREATE USER {SQLConnection.db_user} WITH ENCRYPTED PASSWORD '{SQLConnection.db_password}'""")
 
             for schema_name in schema_list:
                 con.execute(f'DROP SCHEMA IF EXISTS {schema_name}')
                 con.execute(f'CREATE SCHEMA {schema_name}')
-                con.execute(f"""GRANT ALL PRIVILEGES ON SCHEMA {schema_name} TO {SQLConnection.group_user};""")
+                con.execute(f"""GRANT ALL PRIVILEGES ON SCHEMA {schema_name} TO {SQLConnection.db_user};""")
         print(f'Schemas: {schema_list} added to DB')
 
     @staticmethod

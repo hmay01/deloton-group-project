@@ -1,5 +1,6 @@
 from daily_report_helper import Convert, Email, Graph
 
+
 def handler(event, context):
     con = Graph.create_connection()
     Graph.create_directory_for_images()

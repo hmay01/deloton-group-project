@@ -15,9 +15,11 @@ from sqlalchemy import create_engine
 from xhtml2pdf import pisa
 
 
-class Graph():
-    load_dotenv()
 
+class Graph():
+
+    load_dotenv()
+    
     db_host = getenv('DB_HOST')
     db_port = getenv('DB_PORT')
     db_user = getenv('DB_USER')

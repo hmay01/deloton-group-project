@@ -1,0 +1,4 @@
+SQLAlchemy
+Flask
+python-dotenv
+flask-sqlalchemy

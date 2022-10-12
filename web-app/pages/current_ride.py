@@ -9,7 +9,7 @@ previous_log = {}
 consumer = kh.connect_to_kafka_consumer()
 consumer.subscribe([kh.KAFKA_TOPIC_NAME])
 
-register_page(__name__)
+register_page(__name__, path='/')
 
 layout = html.Div(
     children = 

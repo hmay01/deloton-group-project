@@ -275,9 +275,7 @@ class Email():
         """
         msg = Email.create_multipart_message(Email.SENDER, Email.RECIPIENT, Email.SUBJECT, Email.BODY_HTML, Email.BODY_TEXT, Email.ATTACHMENT)
         ses_client = boto3.client('ses', 
-        aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
-        aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
-        region_name= Email.REGION_NAME,)
+        region_name= Email.REGION_NAME)
         return ses_client.send_raw_email(
             Source=Email.SENDER,
             Destinations=[Email.RECIPIENT],

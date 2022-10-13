@@ -47,6 +47,25 @@ class Graph():
         """
         number_of_rides = pd.read_sql_query(query, con)
         return number_of_rides._get_value(0,"number_of_rides")
+        
+    @staticmethod
+    def get_unique_riders(con: sqlalchemy.engine.Connection) -> np.int64:
+        """
+        Returns the number of unique riders in the last 24 hrs
+        """
+        query = f"""
+        WITH riders AS (
+        SELECT DISTINCT (user_id), name
+        FROM yusra_stories_production.users
+        JOIN yusra_stories_production.rides
+        USING (user_id)
+        WHERE start_time > (NOW() - interval '24 hour')
+        )
+        SELECT COUNT(*) AS number_of_riders
+        FROM riders
+        """
+        number_of_unique_riders = pd.read_sql_query(query, con)
+        return number_of_unique_riders._get_value(0,"number_of_rides")
 
     @staticmethod
     def get_graphs(con: sqlalchemy.engine.Connection) -> list:

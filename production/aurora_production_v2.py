@@ -9,9 +9,7 @@ from production_helpers import SQLConnection as sql
 from production_helpers import Transform as t
 
 def handler(event, context):
-    staging_schema = 'yusra_stories_staging'
     production_schema = 'yusra_stories_production'
-    logs_table = 'logs'
 
     #general transformations
     latest_logs = sql.get_latest_ride_logs()

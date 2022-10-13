@@ -6,7 +6,8 @@ numpy
 plotly
 python-dotenv
 kaleido
-backports.zoneinfo==0.2.1
+backports.zoneinfo
+# python_version==3.8
 xhtml2pdf
 botocore
 boto3

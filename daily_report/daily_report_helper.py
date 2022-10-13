@@ -36,14 +36,6 @@ class Graph():
         return con
 
     @staticmethod
-    def create_directory_for_images():
-        """
-        Creates an image directory if not already created
-        """
-        if not os.path.exists("images"):
-            os.mkdir("images")
-
-    @staticmethod
     def get_number_of_rides(con: sqlalchemy.engine.Connection) -> np.int64:
         """
         Returns the number of rides taken in the last 24 hrs
@@ -55,6 +47,25 @@ class Graph():
         """
         number_of_rides = pd.read_sql_query(query, con)
         return number_of_rides._get_value(0,"number_of_rides")
+        
+    @staticmethod
+    def get_unique_riders(con: sqlalchemy.engine.Connection) -> np.int64:
+        """
+        Returns the number of unique riders in the last 24 hrs
+        """
+        query = f"""
+        WITH riders AS (
+        SELECT DISTINCT (user_id), name
+        FROM yusra_stories_production.users
+        JOIN yusra_stories_production.rides
+        USING (user_id)
+        WHERE start_time > (NOW() - interval '24 hour')
+        )
+        SELECT COUNT(*) AS number_of_riders
+        FROM riders
+        """
+        number_of_unique_riders = pd.read_sql_query(query, con)
+        return number_of_unique_riders._get_value(0,"number_of_riders")
 
     @staticmethod
     def get_graphs(con: sqlalchemy.engine.Connection) -> list:
@@ -167,9 +178,9 @@ class Convert():
     @staticmethod       
     def save_graph_as_png(fig, fig_name: str):
         """
-        Converts a plotly graph input to a png image stored in the images directory
+        Converts a plotly graph input to a png image stored in the temp directory
         """
-        fig.write_image(f"images/{fig_name}.png")
+        fig.write_image(f"/tmp/{fig_name}.png")
 
 
     @staticmethod 
@@ -179,14 +190,14 @@ class Convert():
         """
         graph_block =  (''
                 
-                    f'<center><img style="height: 400px;" src="images/{file_name}.png"></center>'
+                    f'<center><img style="height: 400px;" src="/tmp/{file_name}.png"></center>'
                     + '<hr>'
             )                   
     
         return graph_block
 
     @staticmethod 
-    def get_report(graph_names: list, number_of_rides : np.int64) -> str:
+    def get_report(graph_names: list, number_of_rides : np.int64, number_of_unique_riders: np.int64) -> str:
         """
         Returns a html string of the report layout containing the graph 
         image inserts for the input list of graph names 
@@ -197,7 +208,7 @@ class Convert():
         report_layout = (
             '<h1 align="center"> Deloton Exercise Bikes Daily Report</h1>'
             + '<hr>'
-            + f'<h1 align="center"> {number_of_rides} Rides completed today </h1>'
+            + f'<h1 align="center"> Summary: {number_of_rides} rides completed by {number_of_unique_riders} riders today </h1>'
             + '<hr>'
             + graphs_layout  
         )
@@ -233,7 +244,7 @@ class Email():
         </html>"""
 
     BODY_TEXT = 'Good Afternoon,\nAttached is the Daily report pdf.\nBest wishes,\nYusra stories team'
-    ATTACHMENT = 'report.pdf'
+    ATTACHMENT = '/tmp/report.pdf'
     CHARSET = "utf-8"
     REGION_NAME = 'us-east-1'
 
@@ -275,9 +286,7 @@ class Email():
         """
         msg = Email.create_multipart_message(Email.SENDER, Email.RECIPIENT, Email.SUBJECT, Email.BODY_HTML, Email.BODY_TEXT, Email.ATTACHMENT)
         ses_client = boto3.client('ses', 
-        aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
-        aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
-        region_name= Email.REGION_NAME,)
+        region_name= Email.REGION_NAME)
         return ses_client.send_raw_email(
             Source=Email.SENDER,
             Destinations=[Email.RECIPIENT],

@@ -1,6 +1,6 @@
 pyarrow
 pandas
-SQLAlchemy
+SQLAlchemy==1.4.40
 psycopg2-binary
 numpy
 plotly

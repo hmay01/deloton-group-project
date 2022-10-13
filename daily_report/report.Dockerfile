@@ -1,4 +1,4 @@
-FROM public.ecr.aws/lambda/python:3.8
+FROM public.ecr.aws/lambda/python:3.9
 
 COPY daily_report.py daily_report_helper.py ${LAMBDA_TASK_ROOT}
 

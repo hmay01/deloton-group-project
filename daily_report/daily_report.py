@@ -3,7 +3,7 @@ from daily_report_helper import Convert, Email, Graph
 
 def handler(event, context):
     con = Graph.create_connection()
-    Graph.create_directory_for_images()
+    # Graph.create_directory_for_images()
     graphs = Graph.get_graphs(con)
     graph_names = Graph.get_graph_names()
     Convert.output_graphs_to_png(graphs, graph_names)

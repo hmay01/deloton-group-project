@@ -223,7 +223,7 @@ class Convert():
 
 class Email():
     SENDER = 'trainee.john.andemeskel@sigmalabs.co.uk'
-    RECIPIENT = 'bicycle-ceo@sigmalabs.co.uk'
+    RECIPIENT = 'trainee.yusra.anshoor@sigmalabs.co.uk'
     SUBJECT = 'Deloton Exercise Bikes Daily Report'
     BODY_HTML = """<html>
         <br>Good Afternoon,

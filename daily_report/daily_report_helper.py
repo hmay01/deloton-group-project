@@ -35,14 +35,6 @@ class Graph():
         con = engine.connect()
         return con
 
-    # @staticmethod
-    # def create_directory_for_images():
-    #     """
-    #     Creates an image directory if not already created
-    #     """
-    #     if not os.path.exists("images"):
-    #         os.mkdir("images")
-
     @staticmethod
     def get_number_of_rides(con: sqlalchemy.engine.Connection) -> np.int64:
         """
@@ -167,7 +159,7 @@ class Convert():
     @staticmethod       
     def save_graph_as_png(fig, fig_name: str):
         """
-        Converts a plotly graph input to a png image stored in the images directory
+        Converts a plotly graph input to a png image stored in the temp directory
         """
         fig.write_image(f"/tmp/{fig_name}.png")
 

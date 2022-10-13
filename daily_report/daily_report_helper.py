@@ -169,7 +169,7 @@ class Convert():
         """
         Converts a plotly graph input to a png image stored in the images directory
         """
-        fig.write_image(f"images/{fig_name}.png")
+        fig.write_image(f"/tmp/{fig_name}.png")
 
 
     @staticmethod 
@@ -233,7 +233,7 @@ class Email():
         </html>"""
 
     BODY_TEXT = 'Good Afternoon,\nAttached is the Daily report pdf.\nBest wishes,\nYusra stories team'
-    ATTACHMENT = 'report.pdf'
+    ATTACHMENT = '/tmp/report.pdf'
     CHARSET = "utf-8"
     REGION_NAME = 'us-east-1'
 

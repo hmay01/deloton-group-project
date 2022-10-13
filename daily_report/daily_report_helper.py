@@ -44,7 +44,7 @@ class Graph():
             os.mkdir("images")
 
     @staticmethod
-    def get_number_of_rides(con: sqlalchemy.engine.Connection) -> np.int64:
+    def get_number_of_rides(con: sqlalchemy.engine.Connection) :
         """
         Returns the number of rides taken in the last 24 hrs
         """
@@ -186,7 +186,7 @@ class Convert():
         return graph_block
 
     @staticmethod 
-    def get_report(graph_names: list, number_of_rides : np.int64) -> str:
+    def get_report(graph_names: list, number_of_rides ) -> str:
         """
         Returns a html string of the report layout containing the graph 
         image inserts for the input list of graph names 
@@ -204,7 +204,7 @@ class Convert():
         return report_layout
 
     @staticmethod 
-    def convert_html_to_pdf(source_html: str, output_filename: str) -> int:
+    def convert_html_to_pdf(source_html: str, output_filename: str) :
         """
         Converts the input source html to a pdf file saved as the 
         string output filename

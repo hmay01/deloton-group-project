@@ -197,7 +197,7 @@ class Convert():
         return graph_block
 
     @staticmethod 
-    def get_report(graph_names: list, number_of_rides : np.int64) -> str:
+    def get_report(graph_names: list, number_of_rides : np.int64, number_of_unique_riders: np.int64) -> str:
         """
         Returns a html string of the report layout containing the graph 
         image inserts for the input list of graph names 
@@ -208,7 +208,7 @@ class Convert():
         report_layout = (
             '<h1 align="center"> Deloton Exercise Bikes Daily Report</h1>'
             + '<hr>'
-            + f'<h1 align="center"> {number_of_rides} Rides completed today </h1>'
+            + f'<h1 align="center"> Summary: {number_of_rides} rides completed by {number_of_unique_riders} riders today </h1>'
             + '<hr>'
             + graphs_layout  
         )

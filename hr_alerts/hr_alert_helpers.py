@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 class Email():
 
     sender = "trainee.john.andemeskel@sigmalabs.co.uk"
-    aws_region = "us-east-1"
+    aws_region = "eu-west-2"
     subject = "Important Message: Heart rate alert"
     body_text = (" Your heart rate was picked up at an abnormal rhythm, please seek medical attention! ")
            
@@ -159,8 +159,8 @@ class Kafka():
                         dob_log_string = Transformations.get_value_from_user_dict(value_log, 'date_of_birth')
                         dob_timestamp = pd.Timestamp(dob_log_string, unit='ms')
                         age = Transformations.get_age(dob_timestamp)
-                        recipient = Transformations.get_value_from_user_dict('email_address')
-                        name = Transformations.get_value_from_user_dict('name')
+                        recipient = Transformations.get_value_from_user_dict(value_log,'email_address')
+                        name = Transformations.get_value_from_user_dict(value_log,'name')
                  
                     
                     if age != None:
@@ -178,11 +178,11 @@ class Transformations():
 
     @staticmethod
     def get_age(dob:date) -> int:
-        """Calculates a users age based on their date of birth"""
+        """Calculates a users age based on their date of birth, taken leap year into account (value error)"""
         today = date.today()
         try: 
             birthday = dob.replace(year=today.year)
-        except ValueError: # raised when birth date is February 29 and the current year is not a leap year
+        except ValueError: 
             birthday = dob.replace(year=today.year, month=dob.month+1, day=1)
         if birthday > today:
             return today.year - dob.year - 1

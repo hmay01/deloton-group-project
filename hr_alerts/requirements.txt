@@ -1,5 +1,5 @@
-pyarrow==8.0.0
-pandas
-confluent-kafka
-python-dotenv
 boto3
+confluent_kafka
+pandas 
+boto3
+python-dotenv 

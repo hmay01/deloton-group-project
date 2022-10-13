@@ -179,7 +179,7 @@ class Convert():
         """
         graph_block =  (''
                 
-                    f'<center><img style="height: 400px;" src="images/{file_name}.png"></center>'
+                    f'<center><img style="height: 400px;" src="/tmp/{file_name}.png"></center>'
                     + '<hr>'
             )                   
     

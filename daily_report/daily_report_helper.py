@@ -65,7 +65,7 @@ class Graph():
         FROM riders
         """
         number_of_unique_riders = pd.read_sql_query(query, con)
-        return number_of_unique_riders._get_value(0,"number_of_rides")
+        return number_of_unique_riders._get_value(0,"number_of_riders")
 
     @staticmethod
     def get_graphs(con: sqlalchemy.engine.Connection) -> list:
